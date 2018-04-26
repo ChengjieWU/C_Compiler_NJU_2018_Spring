@@ -1,7 +1,11 @@
 #include <stdio.h>
+#include "grammarTree.h"
 
 extern int yylineno;
 //extern int yydebug;
+extern bool lexicalError;
+extern bool syntaxError;
+extern struct Node* grammarTreeRoot;
 
 int main(int argc, char** argv)
 {
@@ -20,6 +24,7 @@ int main(int argc, char** argv)
         yylineno = 1;
         //yydebug = 1;
         yyparse();
+        if (!lexicalError && !syntaxError) print_tree(grammarTreeRoot, 0);
         fclose(f);
     }
     return 0;

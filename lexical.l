@@ -212,6 +212,6 @@ WHILE       while
     yycolumn = 1;
 }
 . {
-    printf("Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext);
+    printf("Error type A at Line %d: Mysterious character \'%s\'.\n", yylineno, yytext);
     lexicalError = true;
 }

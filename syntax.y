@@ -5,6 +5,9 @@
     #include "lex.yy.c"
 
     extern bool lexicalError;
+    bool syntaxError = false;
+
+    struct Node* grammarTreeRoot;
 %}
 
 %locations
@@ -57,7 +60,7 @@
 Program:    ExtDefList {
                 $$ = create_node("Program\0", $1->line, false);
                 create_link($$, $1);
-                if (!lexicalError) print_tree($$, 0);
+                grammarTreeRoot = $$;
             }
         ;
 ExtDefList: {
@@ -85,6 +88,17 @@ ExtDef:     Specifier ExtDecList SEMI {
                 create_link($$, $1);
                 create_link($$, $2);
                 create_link($$, $3);
+            }
+        |   Specifier error {
+                $$ = create_node("ExtDef\0", $1->line, false);
+                printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                create_link($$, $1);
+            }
+        |   Specifier ExtDecList error {
+                $$ = create_node("ExtDef\0", $1->line, false);
+                printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                create_link($$, $1);
+                create_link($$, $2);
             }
         ;
 ExtDecList: VarDec {
@@ -145,6 +159,13 @@ VarDec: ID {
             create_link($$, $3);
             create_link($$, $4);
         }
+    |   VarDec LB INT error RB {
+            $$ = create_node("VarDec\0", $1->line, false);
+            create_link($$, $1);
+            create_link($$, $2);
+            create_link($$, $3);
+            printf("Error type B at Line %d: Missing \"]\".\n", yylineno);
+        }
     ;
 FunDec: ID LP VarList RP {
             $$ = create_node("FunDec\0", $1->line, false);
@@ -183,6 +204,11 @@ CompSt: LC DefList StmtList RC {
             create_link($$, $2);
             create_link($$, $3);
             create_link($$, $4);
+        }
+    |   error RC {
+            $$ = create_node("CompSt\0", yylineno, false);
+            create_link($$, $2);
+            printf("Error type B at Line %d: Wrong function statements.\n", yylineno);
         }
     ;
 StmtList:{
@@ -235,6 +261,16 @@ Stmt:   Exp SEMI {
             create_link($$, $4);
             create_link($$, $5);
         }
+    |   error SEMI {
+            $$ = create_node("Stmt\0", yylineno, false);
+            create_link($$, $2);
+            printf("Error type B at Line %d: Invalid statement.\n", yylineno);
+        }
+    |   Exp error {
+            $$ = create_node("Stmt\0", $1->line, false);
+            create_link($$, $1);
+            printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+        }
     ;
 DefList:{
             $$ = create_node("Deflist\0", yylineno, false);
@@ -250,6 +286,12 @@ Def:    Specifier DecList SEMI {
             create_link($$, $1);
             create_link($$, $2);
             create_link($$, $3);
+        }
+    |   Specifier DecList error {
+            $$ = create_node("Def\0", $1->line, false);
+            create_link($$, $1);
+            create_link($$, $2);
+            printf("Error type B at Line %d: Missing \";\".\n", yylineno);
         }
     ;
 DecList:Dec {
@@ -393,6 +435,8 @@ Args:   Exp COMMA Args {
 
 
 yyerror (char* msg)
-{
-    fprintf(stderr, "Error type B at Line %d: \'%s\'\n", yylineno, msg);
+{   
+    syntaxError = true;
+    //printf("Syntax error\n");
+    return;
 }
