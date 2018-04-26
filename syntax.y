@@ -3,6 +3,8 @@
     #include <string.h>
     #include "grammarTree.h"
     #include "lex.yy.c"
+
+    extern bool lexicalError;
 %}
 
 %locations
@@ -14,8 +16,8 @@
     struct Node* type_node_pointer;
 }
 
-%token <type_node_pointer> INT
-%token <type_node_pointer> FLOAT
+%token <type_node_pointer> INT INT8 INT16
+%token <type_node_pointer> FLOAT FLOATE
 %token <type_node_pointer> ASSIGNOP
 %token <type_node_pointer> RELOP
 %token <type_node_pointer> PLUS MINUS STAR DIV
@@ -55,7 +57,7 @@
 Program:    ExtDefList {
                 $$ = create_node("Program\0", $1->line, false);
                 create_link($$, $1);
-                print_tree($$, 0);
+                if (!lexicalError) print_tree($$, 0);
             }
         ;
 ExtDefList: {

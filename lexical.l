@@ -11,6 +11,8 @@
         yylloc.first_column = yycolumn; \
         yylloc.last_column = yycolumn + yyleng - 1; \
         yycolumn += yyleng;
+
+    bool lexicalError = false;
 %}
 
 %option yylineno
@@ -72,13 +74,17 @@ WHILE       while
     printf("INTW at line %d: \'%s\'\n", yylineno, yytext);
 }
 {INT8} {
-    printf("INT8 at line %d: \'%s\'\n", yylineno, yytext);
+    yylval.type_node_pointer = create_node("INT8\0", yylineno, true);
+    sscanf(yytext, "0%o", &yylval.type_node_pointer->type_int);
+    return INT8;
 }
 {INT8W} {
     printf("INT8W at line %d: \'%s\'\n", yylineno, yytext);
 }
 {INT16} {
-    printf("INT16 at line %d: \'%s\'\n", yylineno, yytext);
+    yylval.type_node_pointer = create_node("INT16\0", yylineno, true);
+    sscanf(yytext, "%x", &yylval.type_node_pointer->type_int);
+    return INT16;
 }
 {INT16W} {
     printf("INT16W at line %d: \'%s\'\n", yylineno, yytext);
@@ -89,7 +95,9 @@ WHILE       while
     return FLOAT;
 }
 {FLOATE} {
-    printf("FLOATE at line %d: \'%s\'\n", yylineno, yytext);
+    yylval.type_node_pointer = create_node("FLOATE\0", yylineno, true);
+    sscanf(yytext, "%e", &yylval.type_node_pointer->type_float);
+    return FLOATE;
 }
 {FLOATEW} {
     printf("FLOATEW at line %d: \'%s\'\n", yylineno, yytext);
@@ -205,4 +213,5 @@ WHILE       while
 }
 . {
     printf("Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext);
+    lexicalError = true;
 }
