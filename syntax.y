@@ -101,7 +101,7 @@ ExtDef:     Specifier ExtDecList SEMI {
                     syntaxErrorPrinted = true;
                 }
                 create_link($$, $1);
-            }
+            }        
         |   Specifier ExtDecList error {
                 $$ = create_node("ExtDef\0", $1->line, false);
                 if (!lexicalError && errorLine!=yylineno) {
@@ -171,7 +171,7 @@ VarDec: ID {
             create_link($$, $3);
             create_link($$, $4);
         }
-    |   VarDec LB INT error RB {
+    |   VarDec LB INT error {
             $$ = create_node("VarDec\0", $1->line, false);
             create_link($$, $1);
             create_link($$, $2);
@@ -431,6 +431,17 @@ Exp:    Exp ASSIGNOP Exp {
             create_link($$, $2);
             create_link($$, $3);
             create_link($$, $4);
+        }
+    |   Exp LB Exp error {
+            $$ = create_node("Exp\0", $1->line, false);
+            create_link($$, $1);
+            create_link($$, $2);
+            create_link($$, $3);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Missing \"]\".\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
         }
     |   Exp DOT ID {
             $$ = create_node("Exp\0", $1->line, false);

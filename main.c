@@ -38,7 +38,7 @@ int main(int argc, char** argv)
         //yydebug = 1;
         yyparse();
         if (!lexicalError && !syntaxError) print_tree(grammarTreeRoot, 0);
-        else if (syntaxError && !syntaxErrorPrinted) {
+        else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
             printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
         }
         fclose(f);
