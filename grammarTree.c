@@ -36,12 +36,10 @@ void print_tree(struct Node* root, int whitespace)
         if (strcmp(root->type, "ID\0") == 0 || strcmp(root->type, "TYPE\0") == 0) {
             printf("%s: %s\n", root->type, root->type_string);
         }
-        else if (strcmp(root->type, "INT\0") == 0 
-        || strcmp(root->type, "INT8\0") == 0 
-        || strcmp(root->type, "INT16\0") == 0) {
+        else if (strcmp(root->type, "INT\0") == 0) {
             printf("INT: %d\n", root->type_int);
         }
-        else if (strcmp(root->type, "FLOAT\0") == 0 || strcmp(root->type, "FLOATE\0") == 0) {
+        else if (strcmp(root->type, "FLOAT\0") == 0) {
             printf("FLOAT: %f\n", root->type_float);
         }
         else {

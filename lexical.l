@@ -13,6 +13,10 @@
         yycolumn += yyleng;
 
     bool lexicalError = false;
+    extern bool syntaxError;
+    extern bool syntaxErrorPrinted;
+    extern int errorLine;
+    extern generalErrorLine;
 %}
 
 %option yylineno
@@ -21,15 +25,16 @@ DIGIT       [0-9]
 LETTER      [_a-zA-Z]
 DL          [_a-zA-Z0-9]
 ANNOTATION  \/\*(.|\n)*\*\/
-ANNOTATIONW \/\*(.|\n)*\/\*(.|\n)*\*\/(.|\n)*\*\/
+ANNOTATIONW (\/\*(.|\n)*{ANNOTATION})|({ANNOTATION}(.|\n)*\*\/)
+LINEANNO    \/\/.*\n
 
-INT         0|[1-9][0-9]*
+INT10       0|[1-9][0-9]*
 INTW        [1-9]{DL}*{LETTER}{DL}*
 INT8        0(0|[1-7][0-7]*)
 INT8W       0[89a-wyzA-WYZ_]+{DL}*|00{DL}+|0[1-7]{DL}*[89a-zA-Z_]{DL}*
 INT16       0[xX](0|[1-9A-Fa-f][0-9A-Fa-f]*)
 INT16W      (0[xX](0{DL}+|{DL}*[G-Zg-z_]{DL}*))|0[xX]
-FLOAT       {INT}\.{DIGIT}*|\.{DIGIT}+
+FLOATP      {INT10}\.{DIGIT}*|\.{DIGIT}+
 FLOATE      ({DIGIT}+\.{DIGIT}*|\.{DIGIT}+)[eE][+-]?{DIGIT}+
 FLOATEW     ({DIGIT}+\.{DIGIT}*|\.{DIGIT}+)[eE][+-]?
 ID          {LETTER}{DL}*
@@ -60,18 +65,26 @@ WHILE       while
 
 
 %%
+
 {ANNOTATIONW} {
-    printf("Wrong annotation\n");
+    printf("Error type B at Line %d: Syntax error.\n", yylineno);
+    syntaxError = true;
+    syntaxErrorPrinted = true;
+    errorLine = yylineno;
+    generalErrorLine = yylineno;
 }
 {ANNOTATION} {
 }
-{INT}  {
-    yylval.type_node_pointer = create_node("INT\0", yylineno, true);
+{LINEANNO} {
+}
+{INT10}  {
+    yylval.type_node_pointer = create_node("INT10\0", yylineno, true);
     yylval.type_node_pointer->type_int = atoi(yytext);
-    return INT;
+    return INT10;
 }
 {INTW} {
-    printf("INTW at line %d: \'%s\'\n", yylineno, yytext);
+    printf("Error type A at Line %d: Illegal decimal number \'%s\'.\n", yylineno, yytext);
+    lexicalError = true;
 }
 {INT8} {
     yylval.type_node_pointer = create_node("INT8\0", yylineno, true);
@@ -79,7 +92,8 @@ WHILE       while
     return INT8;
 }
 {INT8W} {
-    printf("INT8W at line %d: \'%s\'\n", yylineno, yytext);
+    printf("Error type A at Line %d: Illegal octal number \'%s\'.\n", yylineno, yytext);
+    lexicalError = true;
 }
 {INT16} {
     yylval.type_node_pointer = create_node("INT16\0", yylineno, true);
@@ -87,12 +101,13 @@ WHILE       while
     return INT16;
 }
 {INT16W} {
-    printf("INT16W at line %d: \'%s\'\n", yylineno, yytext);
+    printf("Error type A at Line %d: Illegal hexadecimal number \'%s\'.\n", yylineno, yytext);
+    lexicalError = true;
 }
-{FLOAT} {
-    yylval.type_node_pointer = create_node("FLOAT\0", yylineno, true);
+{FLOATP} {
+    yylval.type_node_pointer = create_node("FLOATP\0", yylineno, true);
     yylval.type_node_pointer->type_float = atof(yytext);
-    return FLOAT;
+    return FLOATP;
 }
 {FLOATE} {
     yylval.type_node_pointer = create_node("FLOATE\0", yylineno, true);
@@ -100,7 +115,8 @@ WHILE       while
     return FLOATE;
 }
 {FLOATEW} {
-    printf("FLOATEW at line %d: \'%s\'\n", yylineno, yytext);
+    printf("Error type A at Line %d: Illegal floating point number \"%s\".\n", yylineno, yytext);
+    lexicalError = true;
 }
 
 {SEMI} {
@@ -212,6 +228,6 @@ WHILE       while
     yycolumn = 1;
 }
 . {
-    printf("Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext);
+    printf("Error type A at Line %d: Mysterious character \"%s\".\n", yylineno, yytext);
     lexicalError = true;
 }

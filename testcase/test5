@@ -1,0 +1,11 @@
+/*struct TreeNode {
+    int a;
+    int b;
+}*/
+
+int main()
+{
+    struct TreeNode t;
+    return 0;
+    ;
+}
