@@ -6,6 +6,9 @@
 
     extern bool lexicalError;
     bool syntaxError = false;
+    bool syntaxErrorPrinted = false;
+    int errorLine = -1;
+    int generalErrorLine = -1;
 
     struct Node* grammarTreeRoot;
 %}
@@ -19,8 +22,8 @@
     struct Node* type_node_pointer;
 }
 
-%token <type_node_pointer> INT INT8 INT16
-%token <type_node_pointer> FLOAT FLOATE
+%token <type_node_pointer> INT10 INT8 INT16
+%token <type_node_pointer> FLOATP FLOATE
 %token <type_node_pointer> ASSIGNOP
 %token <type_node_pointer> RELOP
 %token <type_node_pointer> PLUS MINUS STAR DIV
@@ -55,6 +58,7 @@
 %type <type_node_pointer> VarDec FunDec VarList ParamDec
 %type <type_node_pointer> CompSt StmtList Stmt
 %type <type_node_pointer> DefList Def DecList Dec Exp Args
+%type <type_node_pointer> INT FLOAT
 
 %%
 Program:    ExtDefList {
@@ -91,12 +95,20 @@ ExtDef:     Specifier ExtDecList SEMI {
             }
         |   Specifier error {
                 $$ = create_node("ExtDef\0", $1->line, false);
-                printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                if (!lexicalError && errorLine!=yylineno) {
+                    printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                    errorLine = yylineno;
+                    syntaxErrorPrinted = true;
+                }
                 create_link($$, $1);
             }
         |   Specifier ExtDecList error {
                 $$ = create_node("ExtDef\0", $1->line, false);
-                printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                if (!lexicalError && errorLine!=yylineno) {
+                    printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                    errorLine = yylineno;
+                    syntaxErrorPrinted = true;
+                }
                 create_link($$, $1);
                 create_link($$, $2);
             }
@@ -164,7 +176,11 @@ VarDec: ID {
             create_link($$, $1);
             create_link($$, $2);
             create_link($$, $3);
-            printf("Error type B at Line %d: Missing \"]\".\n", yylineno);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Missing \"]\".\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
         }
     ;
 FunDec: ID LP VarList RP {
@@ -208,7 +224,11 @@ CompSt: LC DefList StmtList RC {
     |   error RC {
             $$ = create_node("CompSt\0", yylineno, false);
             create_link($$, $2);
-            printf("Error type B at Line %d: Wrong function statements.\n", yylineno);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Wrong function statements.\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
         }
     ;
 StmtList:{
@@ -264,12 +284,20 @@ Stmt:   Exp SEMI {
     |   error SEMI {
             $$ = create_node("Stmt\0", yylineno, false);
             create_link($$, $2);
-            printf("Error type B at Line %d: Invalid statement.\n", yylineno);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Invalid statement.\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
         }
     |   Exp error {
             $$ = create_node("Stmt\0", $1->line, false);
             create_link($$, $1);
-            printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
         }
     ;
 DefList:{
@@ -291,7 +319,11 @@ Def:    Specifier DecList SEMI {
             $$ = create_node("Def\0", $1->line, false);
             create_link($$, $1);
             create_link($$, $2);
-            printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Missing \";\".\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
         }
     ;
 DecList:Dec {
@@ -430,6 +462,33 @@ Args:   Exp COMMA Args {
             create_link($$, $1);
         }
     ;
+INT:    INT10 {
+            $$ = create_node("INT\0", $1->line, true);
+            $$->type_int = $1->type_int;
+            free($1);
+        }
+    |   INT8 {
+            $$ = create_node("INT\0", $1->line, true);
+            $$->type_int = $1->type_int;
+            free($1);
+        }
+    |   INT16 {
+            $$ = create_node("INT\0", $1->line, true);
+            $$->type_int = $1->type_int;
+            free($1);
+        }
+    ;
+FLOAT:  FLOATP {
+            $$ = create_node("FLOAT\0", $1->line, true);
+            $$->type_float = $1->type_float;
+            free($1);
+        }
+    |   FLOATE {
+            $$ = create_node("FLOAT\0", $1->line, true);
+            $$->type_float = $1->type_float;
+            free($1);
+        }
+    ;
 %%
 
 
@@ -437,6 +496,6 @@ Args:   Exp COMMA Args {
 yyerror (char* msg)
 {   
     syntaxError = true;
-    //printf("Syntax error\n");
+    generalErrorLine = yylineno;
     return;
 }
