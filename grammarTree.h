@@ -19,7 +19,7 @@ struct Node {
     int num_children;
     struct Node* children[MAX_CHILDREN];
     struct Node* parent;
-    int terminal;
+    bool terminal;
 };
 
 struct Node* create_node(char type[], int line, bool terminal);

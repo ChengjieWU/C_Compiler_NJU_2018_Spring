@@ -95,12 +95,12 @@ ExtDef:     Specifier ExtDecList SEMI {
             }
         |   Specifier error {
                 $$ = create_node("ExtDef\0", $1->line, false);
+                create_link($$, $1);
                 if (!lexicalError && errorLine!=yylineno) {
                     printf("Error type B at Line %d: Missing \";\".\n", yylineno);
                     errorLine = yylineno;
                     syntaxErrorPrinted = true;
                 }
-                create_link($$, $1);
             }        
         |   Specifier ExtDecList error {
                 $$ = create_node("ExtDef\0", $1->line, false);
@@ -145,6 +145,18 @@ StructSpecifier:    STRUCT OptTag LC DefList RC {
                         $$ = create_node("StructSpecifier\0", $1->line, false);
                         create_link($$, $1);
                         create_link($$, $2);
+                    }
+                |   STRUCT OptTag LC DefList error {
+                        $$ = create_node("StructSpecifier\0", $1->line, false);
+                        create_link($$, $1);
+                        create_link($$, $2);
+                        create_link($$, $3);
+                        create_link($$, $4);
+                        if (!lexicalError && errorLine!=yylineno) {
+                            printf("Error type B at Line %d: Missing \"}\".\n", yylineno);
+                            errorLine = yylineno;
+                            syntaxErrorPrinted = true;
+                        }
                     }
                 ;
 OptTag: {
@@ -195,6 +207,27 @@ FunDec: ID LP VarList RP {
             create_link($$, $1);
             create_link($$, $2);
             create_link($$, $3);
+        }
+    |   ID LP VarList error {
+            $$ = create_node("FunDec\0", $1->line, false);
+            create_link($$, $1);
+            create_link($$, $2);
+            create_link($$, $3);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Missing \")\".\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
+        }
+    |   ID LP error {
+            $$ = create_node("FunDec\0", $1->line, false);
+            create_link($$, $1);
+            create_link($$, $2);
+            if (!lexicalError && errorLine!=yylineno) {
+                printf("Error type B at Line %d: Missing \")\".\n", yylineno);
+                errorLine = yylineno;
+                syntaxErrorPrinted = true;
+            }
         }
     ;
 VarList:ParamDec COMMA VarList {
