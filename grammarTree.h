@@ -22,6 +22,8 @@ struct Node {
     bool terminal;
 };
 
+struct Node* grammarTreeRoot;
+
 struct Node* create_node(char type[], int line, bool terminal);
 int create_link(struct Node* parent, struct Node* child);
 void print_tree(struct Node* root, int whitespace);

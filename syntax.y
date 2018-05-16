@@ -10,7 +10,7 @@
     int errorLine = -1;
     int generalErrorLine = -1;
 
-    struct Node* grammarTreeRoot;
+    extern struct Node* grammarTreeRoot;
 %}
 
 %locations
