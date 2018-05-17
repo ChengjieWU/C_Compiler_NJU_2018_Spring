@@ -12,7 +12,20 @@ void printSymbols()
 {
     struct Symbol *p = rootHead;
     for (; p != NULL; p = p->next) {
-        printf("%s\n", p->name);
+        switch (p->kind) {
+            case VARIABLE:
+                printf("Variable: %s\t", p->name);
+                print_type(p->structure);
+                printf("\n");
+                break;
+            case STRUCT:
+                printf("Structure: %s\t", p->name);
+                print_type(p->structure);
+                printf("\n");
+                break;
+            default:
+                break;
+        }
     }
 }
 

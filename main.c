@@ -40,12 +40,14 @@ int main(int argc, char** argv)
         yyparse();
         fclose(f);
         /* PRINT GRAMMAR TREE! */
-        // if (!lexicalError && !syntaxError) print_tree(grammarTreeRoot, 0);
-        // else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
-        //     printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
-        // }
-        semantic_analysis();
-        printSymbols();
+        if (!lexicalError && !syntaxError) print_tree(grammarTreeRoot, 0);
+        else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
+            printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
+        }
+        if (!lexicalError && !syntaxError) {
+            semantic_analysis();
+            printSymbols();
+        }
     }
     return 0;
 }

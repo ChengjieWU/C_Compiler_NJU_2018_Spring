@@ -5,37 +5,44 @@
 #include "symbol.h"
 
 void semantic_analysis();
-void semantic_global_variable(struct Node *p);
-void semantic_structure_definition(struct Node *p);
-void semantic_function(struct Node *p);
+void semantic_global_variable(struct Node *extdef);
+void semantic_structure_definition(struct Node *extdef);
+void semantic_function(struct Node *extdef);
 
 
 void semantic_analysis()
 {
     initializeSymbol();
-    struct Node *p = grammarTreeRoot->children[0];      // p is ExtDefList
-    while (p->num_children != 0) {
-        struct Node *q = p->children[0];                // ExtDefList -> ExtDef ExtDefList | null. q is ExtDef.
-        if (strcmp(q->children[1]->type, "ExtDecList\0") == 0) {
-            semantic_global_variable(q);                // ExtDef -> Specifier ExtDecList SEMI
+    struct Node *extdeflist = grammarTreeRoot->children[0];      // p is ExtDefList
+    while (extdeflist->num_children != 0) {
+        struct Node *extdef = extdeflist->children[0];                // ExtDefList -> ExtDef ExtDefList | null. q is ExtDef.
+        if (strcmp(extdef->children[1]->type, "ExtDecList\0") == 0) {
+            semantic_global_variable(extdef);                // ExtDef -> Specifier ExtDecList SEMI
         }
-        else if (strcmp(q->children[1]->type, "SEMI\0") == 0) {
-            semantic_structure_definition(q);           // ExtDef -> Specifier SEMI
+        else if (strcmp(extdef->children[1]->type, "SEMI\0") == 0) {
+            semantic_structure_definition(extdef);           // ExtDef -> Specifier SEMI
         }
-        else if (strcmp(q->children[1]->type, "FunDec\0") == 0)  {
-            semantic_function(q);                       // ExtDef -> Specifier FunDec CompSt
+        else if (strcmp(extdef->children[1]->type, "FunDec\0") == 0)  {
+            semantic_function(extdef);                       // ExtDef -> Specifier FunDec CompSt
         }
         else {
             printf("Error! In \'semantic_analysis\'. Debugging needed.\n");
         }
-        p = p->children[1];
+        extdeflist = extdeflist->children[1];
     }
     return;
 }
 
-void semantic_global_variable(struct Node *p){}
-void semantic_structure_definition(struct Node *p)
+void semantic_global_variable(struct Node *extdef)
 {
-    semantic_Specifier(p->children[0]);
+    struct Type *type = semantic_Specifier(extdef->children[0]);
+    if (type == NULL) return;
+    
 }
-void semantic_function(struct Node *p){}
+
+void semantic_structure_definition(struct Node *extdef)
+{
+    semantic_Specifier(extdef->children[0]);
+}
+
+void semantic_function(struct Node *extdef){}

@@ -8,6 +8,33 @@
     1. 回收未使用的type
 */
 
+void print_type(struct Type *type)
+{
+    switch (type->kind) {
+        case INTtype:
+            printf("INT\t");
+            break;
+        case FLOATtype:
+            printf("FLOAT\t");
+            break;
+        case ARRAY:
+            printf("Array\t");
+            printf("%d\t", type->array.size);
+            print_type(type->array.eleType);
+            break;
+        case STRUCTURE:
+            printf("Structure\t");
+            struct FieldList *p = type->structure;
+            for (; p != NULL; p = p->next) {
+                printf("field %s\t", p->name);
+                print_type(p->fieldType);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 struct Type *semantic_Specifier(struct Node *specifier)            // p is Specifier
 {
     if (strcmp(specifier->children[0]->type, "TYPE\0") == 0) {                   // Specifier -> TYPE

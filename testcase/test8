@@ -1,11 +1,5 @@
-int;
-float;
-struct wcj;
-struct abc {
-    int a;
-    float a;
-    int c;
-};
-struct abc {
-    int ds;
+struct wcj {
+    struct abc {
+        int a;
+    } haha[100][80];
 };
