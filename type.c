@@ -130,8 +130,7 @@ struct Type *semantic_Specifier(struct Node *specifier)            // p is Speci
 struct Type *semantic_VarDec_inStruct(struct Node *vardec, struct Type *type)
 {
     if (vardec->num_children == 1) {
-        int ret = add_variable(vardec->children[0]->type_string, type);
-        if (ret == -1) {
+        if (add_variable(vardec->children[0]->type_string, type) == NULL) {
             printf("Error type 15 at Line %d: Redefined field \"%s\".\n", 
                     vardec->line, vardec->children[0]->type_string);
             return NULL;

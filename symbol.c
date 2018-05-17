@@ -23,6 +23,14 @@ void printSymbols()
                 print_type(p->structure);
                 printf("\n");
                 break;
+            case FUNCTION:
+                printf("Function: %s\t", p->name);
+                print_type(p->structure);
+                struct Symbol *q = p->params;
+                for (; q != NULL; q = q->params) {
+                    printf("%s\t", q->name);
+                }
+                printf("\n");
             default:
                 break;
         }
@@ -40,28 +48,41 @@ int general_check(char *name)
     return 0;
 }
 
-int add_structure(char *name, struct Type *stc)
+struct Symbol *add_structure(char *name, struct Type *stc)
 {
-    if (general_check(name) == -1) return -1;
+    if (general_check(name) == -1) return NULL;
     struct Symbol *sym = (struct Symbol *)malloc(sizeof(struct Symbol));
     sym->kind = STRUCT;
     sym->next = rootHead;
-    sym->structure = stc;
     strcpy(sym->name, name);
+    sym->structure = stc;
     rootHead = sym;
-    return 0;
+    return sym;
 }
 
-int add_variable(char *name, struct Type *stc)
+struct Symbol *add_variable(char *name, struct Type *stc)
 {
-    if (general_check(name) == -1) return -1;
+    if (general_check(name) == -1) return NULL;
     struct Symbol *sym = (struct Symbol *)malloc(sizeof(struct Symbol));
-    sym->next = rootHead;
     sym->kind = VARIABLE;
+    sym->next = rootHead;
     strcpy(sym->name, name);
     sym->structure = stc;
     rootHead = sym;
-    return 0;
+    return sym;
+}
+
+struct Symbol *add_function(char *name, struct Type *retType, struct Symbol *params)
+{
+    if (general_check(name) == -1) return NULL;
+    struct Symbol *sym = (struct Symbol *)malloc(sizeof(struct Symbol));
+    sym->kind = FUNCTION;
+    sym->next = rootHead;
+    strcpy(sym->name, name);
+    sym->structure = retType;
+    sym->params = params;
+    rootHead = sym;
+    return sym;
 }
 
 struct Type *search_structure(char *name)
