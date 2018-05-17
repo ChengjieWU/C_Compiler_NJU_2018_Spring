@@ -40,7 +40,9 @@ int main(int argc, char** argv)
         yyparse();
         fclose(f);
         /* PRINT GRAMMAR TREE! */
-        if (!lexicalError && !syntaxError) print_tree(grammarTreeRoot, 0);
+        if (!lexicalError && !syntaxError) {
+            // print_tree(grammarTreeRoot, 0);
+        }
         else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
             printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
         }

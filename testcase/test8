@@ -3,3 +3,9 @@ struct wcj {
         int a;
     } haha[100][80];
 };
+
+int d, e, f;
+int c;
+struct wcj nihao[5];
+int;
+float c;
