@@ -39,7 +39,6 @@ int main(int argc, char** argv)
         //yydebug = 1;
         yyparse();
         fclose(f);
-        /* PRINT GRAMMAR TREE! */
         if (!lexicalError && !syntaxError) {
             // print_tree(grammarTreeRoot, 0);
         }
@@ -48,7 +47,7 @@ int main(int argc, char** argv)
         }
         if (!lexicalError && !syntaxError) {
             semantic_analysis();
-            printSymbols();
+            // printSymbols();
         }
     }
     return 0;
