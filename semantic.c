@@ -4,7 +4,6 @@
 #include "type.h"
 #include "symbol.h"
 
-extern struct Node* grammarTreeRoot;
 void semantic_analysis();
 void semantic_global_variable(struct Node *p);
 void semantic_structure_definition(struct Node *p);
@@ -35,5 +34,8 @@ void semantic_analysis()
 }
 
 void semantic_global_variable(struct Node *p){}
-void semantic_structure_definition(struct Node *p){}
+void semantic_structure_definition(struct Node *p)
+{
+    semantic_Specifier(p->children[0]);
+}
 void semantic_function(struct Node *p){}

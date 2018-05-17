@@ -8,7 +8,8 @@ extern bool syntaxError;
 extern bool syntaxErrorPrinted;
 extern int errorLine;
 extern int generalErrorLine;
-extern struct Node* grammarTreeRoot;
+
+extern void semantic_analysis();
 
 void initialize_error_status()
 {
@@ -37,11 +38,14 @@ int main(int argc, char** argv)
         yylineno = 1;
         //yydebug = 1;
         yyparse();
-        if (!lexicalError && !syntaxError) print_tree(grammarTreeRoot, 0);
-        else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
-            printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
-        }
         fclose(f);
+        /* PRINT GRAMMAR TREE! */
+        // if (!lexicalError && !syntaxError) print_tree(grammarTreeRoot, 0);
+        // else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
+        //     printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
+        // }
+        semantic_analysis();
+        printSymbols();
     }
     return 0;
 }

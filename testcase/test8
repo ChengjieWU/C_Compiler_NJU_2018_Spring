@@ -1,0 +1,11 @@
+int;
+float;
+struct wcj;
+struct abc {
+    int a;
+    float a;
+    int c;
+};
+struct abc {
+    int ds;
+};

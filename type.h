@@ -24,6 +24,7 @@ struct FieldList {
     struct FieldList *next;
 };
 
-struct Type *semantic_specifier(struct Node *p);
+struct Type *semantic_Specifier(struct Node *specifier);
+struct Type *semantic_VarDec_inStruct(struct Node *vardec, struct Type *stc);
 
 #endif

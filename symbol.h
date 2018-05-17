@@ -5,7 +5,7 @@
 
 #define SYMBOL_NAME_MAX_LEN 32
 
-enum symbolKind {VARIBLE, FUNCTION, STRUCT};
+enum symbolKind {VARIABLE, FUNCTION, STRUCT};
 
 struct Symbol {
     enum symbolKind kind;
@@ -19,8 +19,10 @@ struct Symbol {
 struct Symbol *rootHead;
 
 void initializeSymbol();
-bool general_check(char *name);
-bool add_structure(char *name, struct Type *stc);
+void printSymbols();
+int general_check(char *name);
+int add_structure(char *name, struct Type *stc);
 struct Type *search_structure(char *name);
+int add_variable(char *name, struct Type *stc);
 
 #endif
