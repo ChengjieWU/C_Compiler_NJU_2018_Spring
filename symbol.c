@@ -97,3 +97,29 @@ struct Type *search_structure(char *name)
     }
     return NULL;
 }
+
+struct Symbol *search_variable(char *name)
+{
+    struct Symbol *p = rootHead;
+    for (; p != NULL; p = p->next) {
+        if (p->kind == VARIABLE) {
+            if (strcmp(p->name, name) == 0) {
+                return p;
+            }
+        }
+    }
+    return NULL;
+}
+
+struct Symbol *search_function(char *name)
+{
+    struct Symbol *p = rootHead;
+    for (; p != NULL; p = p->next) {
+        if (p->kind == FUNCTION) {
+            if (strcmp(p->name, name) == 0) {
+                return p;
+            }
+        }
+    }
+    return NULL;
+}

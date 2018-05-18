@@ -8,6 +8,14 @@
     1. 回收未使用的type
 */
 
+void initializeType()
+{
+    typeInt = (struct Type *)malloc(sizeof(struct Type));
+    typeInt->kind = INTtype;
+    typeFloat = (struct Type *)malloc(sizeof(struct Type));
+    typeFloat->kind = FLOATtype;
+}
+
 void print_type(struct Type *type)
 {
     switch (type->kind) {
@@ -38,15 +46,12 @@ void print_type(struct Type *type)
 struct Type *semantic_Specifier(struct Node *specifier)            // p is Specifier
 {
     if (strcmp(specifier->children[0]->type, "TYPE\0") == 0) {                   // Specifier -> TYPE
-        struct Type *type = (struct Type *)malloc(sizeof(struct Type));
         if (strcmp(specifier->children[0]->type_string, "int\0") == 0) {
-            type->kind = INTtype;
+            return typeInt;
         }
-        else if (strcmp(specifier->children[0]->type_string, "float\0") == 0) {
-            type->kind = FLOATtype;
+        else {
+            return typeFloat;
         }
-        else printf("Error in \'semantic_specifier\'!\n");
-        return type;
     }
     else if (strcmp(specifier->children[0]->type, "StructSpecifier\0") == 0) {   // Specifier -> StructSpecifier
         struct Node *structspecifier = specifier->children[0];

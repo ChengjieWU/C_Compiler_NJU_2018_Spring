@@ -47,7 +47,7 @@ int main(int argc, char** argv)
         }
         if (!lexicalError && !syntaxError) {
             semantic_analysis();
-            // printSymbols();
+            printSymbols();
         }
     }
     return 0;

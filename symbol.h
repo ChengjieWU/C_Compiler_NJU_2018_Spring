@@ -24,5 +24,7 @@ struct Symbol *add_structure(char *name, struct Type *stc);
 struct Type *search_structure(char *name);
 struct Symbol *add_variable(char *name, struct Type *stc);
 struct Symbol *add_function(char *name, struct Type *retType, struct Symbol *params);
+struct Symbol *search_variable(char *name);
+struct Symbol *search_function(char *name);
 
 #endif
