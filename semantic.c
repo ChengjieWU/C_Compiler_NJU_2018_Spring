@@ -11,8 +11,16 @@ void semantic_global_variable(struct Node *extdef);
 void semantic_structure_definition(struct Node *extdef);
 void semantic_function_definition(struct Node* extdef);
 void semantic_ExtDecList(struct Node *extdeclist, struct Type *type);
-struct Symbol *semantic_VarDec(struct Node *vardec, struct Type *type);
 struct Symbol *semantic_FunDec(struct Node *fundec, struct Type *type);
+void semantic_CompSt(struct Node *compst, struct Symbol *func);
+void semantic_DefList(struct Node *deflist);
+struct Symbol *semantic_VarDec(struct Node *vardec, struct Type *type);
+struct Exp semantic_Exp(struct Node *exp);
+void semantic_StmtList(struct Node *stmtlist, struct Symbol *func);
+void semantic_Stmt(struct Node *stmt, struct Symbol *func);
+
+struct Exp semantic_Exp(struct Node *exp);
+
 
 
 void semantic_analysis()
@@ -56,8 +64,9 @@ void semantic_function_definition(struct Node* extdef)
     struct Type *type = semantic_Specifier(extdef->children[0]);
     if (type == NULL) return;
     struct Symbol *func = semantic_FunDec(extdef->children[1], type);
-
-    // to be continued
+    if (func == NULL) return;
+    semantic_CompSt(extdef->children[2], func);
+    return;
 }
 
 void semantic_ExtDecList(struct Node *extdeclist, struct Type *type)
@@ -98,11 +107,14 @@ struct Symbol *semantic_FunDec(struct Node *fundec, struct Type *type)
     return func;
 }
 
-void semantic_CompSt(struct Node *compst)
+void semantic_CompSt(struct Node *compst, struct Symbol *func)
 {
-    //to be continued
+    semantic_DefList(compst->children[1]);
+    semantic_StmtList(compst->children[2], func);
+    return;
 }
 
+/* 若变量成功定义，但初始化失败，那么变量是不删除的。并且使用的也是名等价来做。 */
 void semantic_DefList(struct Node *deflist)
 {
     for (; deflist->num_children != 0; deflist = deflist->children[1]) {
@@ -114,7 +126,11 @@ void semantic_DefList(struct Node *deflist)
             struct Node *vardec = dec->children[0];
             struct Symbol *sym = semantic_VarDec(vardec, type);
             if (sym != NULL && dec->num_children == 3) {
-                //to be continued
+                struct Exp e = semantic_Exp(dec->children[2]);
+                /* 若变量成功定义，但初始化失败，那么变量是不删除的。并且使用的也是名等价来做。 */
+                if (e.type != sym->structure) {
+                    printf("Error type 5 at Line %d: Type mismatched for assignment.\n", dec->line);
+                }
             } 
             if (declist->num_children == 3) declist = declist->children[2];
             else break;
@@ -141,9 +157,11 @@ struct Symbol *semantic_VarDec(struct Node *vardec, struct Type *type)
     }
 }
 
+/* 这边写不出来啊啊啊啊啊！！！ */
 struct Exp semantic_Exp(struct Node *exp)
 {
     struct Exp e;
+    /* Exp -> ID | INT | FLOAT */
     if (exp->num_children == 1) {
         if (strcmp(exp->children[0]->type, "INT\0") == 0) {
             e.type = typeInt;
@@ -161,12 +179,14 @@ struct Exp semantic_Exp(struct Node *exp)
                 printf("Error type 1 at Line %d: Undefined variable \"%s\".\n", 
                         exp->line, exp->children[0]->type_string);
                 e.type = NULL;
+                return e;
             }
             e.type = sym->structure;
             e.var = true;
             return e;
         }
     }
+    /* Exp -> Exp AND Exp | Exp OR Exp */
     else if (strcmp(exp->children[1]->type, "AND\0") == 0 || strcmp(exp->children[1]->type, "OR\0") == 0) {
         struct Exp e1 = semantic_Exp(exp->children[0]);
         struct Exp e2 = semantic_Exp(exp->children[2]);
@@ -283,7 +303,7 @@ struct Exp semantic_Exp(struct Node *exp)
             }
         }
         if (field == NULL) {
-            printf("Error type 13 at Line %d: Non-existent field \"%s\".\n", exp->line, fieldName);
+            printf("Error type 14 at Line %d: Non-existent field \"%s\".\n", exp->line, fieldName);
             e.type = NULL;
             return e;
         }
@@ -291,11 +311,16 @@ struct Exp semantic_Exp(struct Node *exp)
         e.var = e1.var;
         return e;
     }
-    /* 这边写不出来啊啊啊啊啊！！！ */
+    /* Exp -> ID LP Args RP | ID LP RP */
     else if (strcmp(exp->children[1]->type, "LP\0") == 0) {
-        struct Symbol *func = search_function(exp->children[0]->type_string);
+        struct Symbol *func = search_symbol(exp->children[0]->type_string);
         if (func == NULL) {
             printf("Error type 2 at Line %d: Undefined function \"%s\".\n", exp->line, exp->children[0]->type_string);
+            e.type = NULL;
+            return e;
+        }
+        if (func->kind != FUNCTION) {
+            printf("Error type 11 at Line %d: \"%s\" is not a function.\n", exp->line, exp->children[0]->type_string);
             e.type = NULL;
             return e;
         }
@@ -333,12 +358,12 @@ struct Exp semantic_Exp(struct Node *exp)
         /* 这边使用了名等价啊啊啊啊啊啊！！！！ */
         /* 先判断是否可赋值，再判断是否同类型的可以赋值。 */
         if (e1.var == false) {
-            printf("Error type 6 at Line %d: The left-hand side of an assignment must be a variable.", exp->line);
+            printf("Error type 6 at Line %d: The left-hand side of an assignment must be a variable.\n", exp->line);
             e.type = NULL;
             return e;
         }
         if (e1.type != e2.type) {
-            printf("Error type 5 at Line %d: Type mismatched for assignment.", exp->line);
+            printf("Error type 5 at Line %d: Type mismatched for assignment.\n", exp->line);
             e.type = NULL;
             return e;
         }
@@ -347,4 +372,58 @@ struct Exp semantic_Exp(struct Node *exp)
         return e;
     }
     return e;
+}
+
+void semantic_StmtList(struct Node *stmtlist, struct Symbol *func)
+{
+    for (; stmtlist->num_children != 0; stmtlist = stmtlist->children[1]) {
+        struct Node *stmt = stmtlist->children[0];
+        semantic_Stmt(stmt, func);
+    }
+    return;
+}
+
+void semantic_Stmt(struct Node *stmt, struct Symbol *func)
+{
+    if (strcmp(stmt->children[0]->type, "Exp\0") == 0) {
+        semantic_Exp(stmt->children[0]);
+    }
+    else if (strcmp(stmt->children[0]->type, "CompSt\0") == 0) {
+        semantic_CompSt(stmt->children[0], NULL);
+    }
+    else if (strcmp(stmt->children[0]->type, "RETURN\0") == 0) {
+        struct Exp e = semantic_Exp(stmt->children[1]);
+        if (e.type == NULL) {
+            return;
+        }
+        if (func->structure != e.type) {
+            printf("Error type 8 at Line %d: Type mismatched for return.\n", stmt->line);
+        }
+    }
+    else if (strcmp(stmt->children[0]->type, "WHILE\0") == 0) {
+        struct Exp e = semantic_Exp(stmt->children[2]);
+        if (e.type == NULL) {
+            return;
+        }
+        if (e.type->kind != INTtype) {
+            printf("Error type 7 at Line %d: Type mismatched for operands.\n", stmt->children[2]->line);
+            return;
+        }
+        semantic_Stmt(stmt->children[4], NULL);
+    }
+    else {
+        struct Exp e = semantic_Exp(stmt->children[2]);
+        if (e.type == NULL) {
+            return;
+        }
+        if (e.type->kind != INTtype) {
+            printf("Error type 7 at Line %d: Type mismatched for operands.\n", stmt->children[2]->line);
+            return;
+        }
+        semantic_Stmt(stmt->children[4], NULL);
+        if (stmt->num_children == 7) {
+            semantic_Stmt(stmt->children[6], NULL);
+        }
+    }
+    return;
 }

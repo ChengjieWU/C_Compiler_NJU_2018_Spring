@@ -26,5 +26,6 @@ struct Symbol *add_variable(char *name, struct Type *stc);
 struct Symbol *add_function(char *name, struct Type *retType, struct Symbol *params);
 struct Symbol *search_variable(char *name);
 struct Symbol *search_function(char *name);
+struct Symbol *search_symbol(char *name);
 
 #endif

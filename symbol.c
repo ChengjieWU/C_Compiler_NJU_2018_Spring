@@ -123,3 +123,14 @@ struct Symbol *search_function(char *name)
     }
     return NULL;
 }
+
+struct Symbol *search_symbol(char *name)
+{
+    struct Symbol *p = rootHead;
+    for (; p != NULL; p = p->next) {
+        if (strcmp(p->name, name) == 0) {
+            return p;
+        }
+    }
+    return NULL;
+}
