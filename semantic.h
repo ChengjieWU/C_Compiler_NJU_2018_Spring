@@ -8,5 +8,13 @@ struct Exp {
     bool var;
 };
 
+struct Parameters {
+    struct Type *type;
+    struct Parameters *next;
+};
+
+
+void semantic_analysis();
+
 
 #endif

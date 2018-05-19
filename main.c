@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "grammarTree.h"
+#include "semantic.h"
 
 extern int yylineno;
 //extern int yydebug;
@@ -8,8 +8,6 @@ extern bool syntaxError;
 extern bool syntaxErrorPrinted;
 extern int errorLine;
 extern int generalErrorLine;
-
-extern void semantic_analysis();
 
 void initialize_error_status()
 {

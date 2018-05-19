@@ -150,3 +150,10 @@ struct Type *semantic_VarDec_inStruct(struct Node *vardec, struct Type *type)
         return semantic_VarDec_inStruct(vardec->children[0], arrayType);
     }
 }
+
+/* 名等价 */
+bool compare_type(struct Type *t1, struct Type *t2)
+{
+    if (t1 == t2) return true;
+    return false;
+}

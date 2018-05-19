@@ -1,8 +1,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <mm_malloc.h>
-#include "grammarTree.h"
-#include "type.h"
 #include "symbol.h"
 #include "semantic.h"
 
@@ -18,10 +16,8 @@ struct Symbol *semantic_VarDec(struct Node *vardec, struct Type *type);
 struct Exp semantic_Exp(struct Node *exp);
 void semantic_StmtList(struct Node *stmtlist, struct Symbol *func);
 void semantic_Stmt(struct Node *stmt, struct Symbol *func);
-
-struct Exp semantic_Exp(struct Node *exp);
-
-
+struct Parameters *get_parameterType_list(struct Symbol *func);
+void delete_parameterType_list(struct Parameters *head);
 
 void semantic_analysis()
 {
@@ -114,7 +110,7 @@ void semantic_CompSt(struct Node *compst, struct Symbol *func)
     return;
 }
 
-/* 若变量成功定义，但初始化失败，那么变量是不删除的。并且使用的也是名等价来做。 */
+/* 若变量成功定义，但初始化失败，那么变量是不删除的。 */
 void semantic_DefList(struct Node *deflist)
 {
     for (; deflist->num_children != 0; deflist = deflist->children[1]) {
@@ -127,8 +123,8 @@ void semantic_DefList(struct Node *deflist)
             struct Symbol *sym = semantic_VarDec(vardec, type);
             if (sym != NULL && dec->num_children == 3) {
                 struct Exp e = semantic_Exp(dec->children[2]);
-                /* 若变量成功定义，但初始化失败，那么变量是不删除的。并且使用的也是名等价来做。 */
-                if (e.type != sym->structure) {
+                /* 若变量成功定义，但初始化失败，那么变量是不删除的。 */
+                if (compare_type(e.type, sym->structure) == false) {
                     printf("Error type 5 at Line %d: Type mismatched for assignment.\n", dec->line);
                 }
             } 
@@ -325,24 +321,43 @@ struct Exp semantic_Exp(struct Node *exp)
             return e;
         }
         if (strcmp(exp->children[2]->type, "RP\0") == 0) {
+            struct Parameters *par = get_parameterType_list(func);
+            if (par != NULL) {
+                printf("Error type 9 at Line %d: Invalid arguments.\n", exp->line);
+                e.type = NULL;
+                return e;
+            }
             e.type = func->structure;
             e.var = false;
             return e;
         }
         else {
+            struct Parameters *par = get_parameterType_list(func);
+            struct Parameters *parIter = par;
             struct Node *Args = exp->children[2];
-            while (Args != NULL) {
+            while (parIter != NULL) {
                 struct Node *exp_new = Args->children[0];
                 struct Exp e_new = semantic_Exp(exp_new);
                 if (e_new.type == NULL) {
                     e.type = NULL;
                     return e;
                 }
-                /* ************ To Be Continued ************ */
-
+                if (compare_type(e_new.type, parIter->type) == false) {
+                    printf("Error type 9 at Line %d: Invalid arguments.\n", exp_new->line);
+                    e.type = NULL;
+                    return e;
+                }
+                parIter = parIter->next;
+                if (parIter == NULL) break;
                 if (Args->num_children == 3) Args = Args->children[2];
                 else break;
             }
+            if (parIter != NULL || Args->num_children == 3) {
+                printf("Error type 9 at Line %d: Invalid arguments.\n", Args->line);
+                e.type = NULL;
+                return e;
+            }
+            delete_parameterType_list(par);
             e.type = func->structure;
             e.var = false;
             return e;
@@ -355,14 +370,13 @@ struct Exp semantic_Exp(struct Node *exp)
             e.type = NULL;
             return e;
         }
-        /* 这边使用了名等价啊啊啊啊啊啊！！！！ */
         /* 先判断是否可赋值，再判断是否同类型的可以赋值。 */
         if (e1.var == false) {
             printf("Error type 6 at Line %d: The left-hand side of an assignment must be a variable.\n", exp->line);
             e.type = NULL;
             return e;
         }
-        if (e1.type != e2.type) {
+        if (compare_type(e1.type, e2.type) == false) {
             printf("Error type 5 at Line %d: Type mismatched for assignment.\n", exp->line);
             e.type = NULL;
             return e;
@@ -396,7 +410,7 @@ void semantic_Stmt(struct Node *stmt, struct Symbol *func)
         if (e.type == NULL) {
             return;
         }
-        if (func->structure != e.type) {
+        if (compare_type(func->structure, e.type) == false) {
             printf("Error type 8 at Line %d: Type mismatched for return.\n", stmt->line);
         }
     }
@@ -424,6 +438,41 @@ void semantic_Stmt(struct Node *stmt, struct Symbol *func)
         if (stmt->num_children == 7) {
             semantic_Stmt(stmt->children[6], NULL);
         }
+    }
+    return;
+}
+
+struct Parameters *get_parameterType_list(struct Symbol *func)
+{
+    struct Parameters *head = NULL;
+    struct Parameters *current = NULL;
+    if (func->kind != FUNCTION) {
+        printf("the symbol is not a function\n");
+        return NULL;
+    }
+    struct Symbol *sym = func->params;
+    for (; sym != NULL; sym = sym->params) {
+        struct Parameters *p = (struct Parameters *)malloc(sizeof(struct Parameters));
+        p->type = sym->structure;
+        p->next = NULL;
+        if (head == NULL) {
+            head = p;
+            current = p;
+        }
+        else {
+            current->next = p;
+            current = p;
+        }
+    }
+    return head;
+}
+
+void delete_parameterType_list(struct Parameters *head)
+{
+    while (head != NULL) {
+        struct Parameters *re = head;
+        head = head->next;
+        free(re);
     }
     return;
 }

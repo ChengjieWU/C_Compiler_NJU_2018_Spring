@@ -8,11 +8,11 @@
 enum symbolKind {VARIABLE, FUNCTION, STRUCT};
 
 struct Symbol {
-    enum symbolKind kind;
-    char name[SYMBOL_NAME_MAX_LEN];
-    struct Type *structure;
-    struct Symbol *params;
-    struct Symbol *next;
+    enum symbolKind kind;               // 符号类型
+    char name[SYMBOL_NAME_MAX_LEN];     // 符号标识符
+    struct Type *structure;             // 表示数据类型。在FUNCTION中表示返回值类型
+    struct Symbol *params;              // 维护函数定义的参数表中的指针
+    struct Symbol *next;                // 维护符号表中的指针
 };
 
 struct Symbol *rootHead;
