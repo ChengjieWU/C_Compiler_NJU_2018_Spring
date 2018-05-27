@@ -153,7 +153,6 @@ struct Symbol *semantic_VarDec(struct Node *vardec, struct Type *type)
     }
 }
 
-/* 这边写不出来啊啊啊啊啊！！！ */
 struct Exp semantic_Exp(struct Node *exp)
 {
     struct Exp e;
