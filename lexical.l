@@ -16,7 +16,7 @@
     extern bool syntaxError;
     extern bool syntaxErrorPrinted;
     extern int errorLine;
-    extern generalErrorLine;
+    extern int generalErrorLine;
 %}
 
 %option yylineno
