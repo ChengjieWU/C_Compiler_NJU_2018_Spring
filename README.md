@@ -5,3 +5,4 @@ The project is under construction.
 It's currently tested on MacOS 10.13. It can also run on Linux.
 
 Project1 has been finished. Experiment reports are in the report folder.
+Project2 has been finished. Experiment reports are in the report folder.
