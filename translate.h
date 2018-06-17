@@ -4,7 +4,7 @@
 #include "grammarTree.h"
 
 #define SYMBOL_T_NAME_MAX_LEN 32
-#define MAX_CODE_LEN 32
+#define MAX_CODE_LEN 128
 
 enum sym_kind {SYM_VAR, SYM_FUNC};
 enum op_kind {OP_VAR, OP_CONSTANT, OP_FUNC};
