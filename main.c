@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "semantic.h"
+#include "translate.h"
 
 extern int yylineno;
 //extern int yydebug;
@@ -20,33 +21,64 @@ void initialize_error_status()
 
 int main(int argc, char** argv)
 {
-    if (argc < 2) {
-        yylex();
-        return 0;
+    if (argc != 3) {
+        return -1;
     }
-    int i = 0;
-    for (i = 1; i < argc; i++) {
-        FILE* f = fopen(argv[i], "r");
+    FILE* f = fopen(argv[1], "r");
+    if (!f) {
+        perror(argv[1]);
+        return -1;
+    }
+    initialize_error_status();
+    yyrestart(f);
+    yylineno = 1;
+    //yydebug = 1;
+    yyparse();
+    fclose(f);
+    if (!lexicalError && !syntaxError) {
+        semantic_analysis();
+        f = fopen(argv[2], "w");
         if (!f) {
-            perror(argv[i]);
-            return 1;
+            perror(argv[2]);
+            return -1;
         }
-        initialize_error_status();
-        yyrestart(f);
-        yylineno = 1;
-        //yydebug = 1;
-        yyparse();
+        write_CB(translate_IR(), f);
         fclose(f);
-        if (!lexicalError && !syntaxError) {
-            // print_tree(grammarTreeRoot, 0);
-        }
-        else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
-            printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
-        }
-        if (!lexicalError && !syntaxError) {
-            semantic_analysis();
-            // printSymbols();
-        }
     }
     return 0;
 }
+
+
+/* Used in Lab1 and Lab2 */
+// int main(int argc, char** argv)
+// {
+//     if (argc < 2) {
+//         yylex();
+//         return 0;
+//     }
+//     int i = 0;
+//     for (i = 1; i < argc; i++) {
+//         FILE* f = fopen(argv[i], "r");
+//         if (!f) {
+//             perror(argv[i]);
+//             return 1;
+//         }
+//         initialize_error_status();
+//         yyrestart(f);
+//         yylineno = 1;
+//         //yydebug = 1;
+//         yyparse();
+//         fclose(f);
+//         if (!lexicalError && !syntaxError) {
+//             // print_tree(grammarTreeRoot, 0);
+//         }
+//         else if (!lexicalError && syntaxError && !syntaxErrorPrinted) {
+//             printf("Error type B at Line %d: Syntax error.\n", generalErrorLine);
+//         }
+//         if (!lexicalError && !syntaxError) {
+//             semantic_analysis();
+//             // printSymbols();
+//         }
+//     }
+//     return 0;
+// }

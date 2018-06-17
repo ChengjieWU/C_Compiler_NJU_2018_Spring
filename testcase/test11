@@ -1,0 +1,13 @@
+int main(int a, int b) {
+    return 0;
+}
+
+int hello() {
+    c = 1;
+    d = c + 12;
+    return d;
+}
+
+int fdsa(int z, int q, int t) {
+    return 1;
+}

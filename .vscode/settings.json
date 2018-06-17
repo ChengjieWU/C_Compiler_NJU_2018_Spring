@@ -1,5 +1,11 @@
 {
     "files.associations": {
-        "grammartree.h": "c"
+        "grammartree.h": "c",
+        "typeinfo": "cpp",
+        "__bit_reference": "c",
+        "__split_buffer": "c",
+        "deque": "c",
+        "initializer_list": "c",
+        "vector": "c"
     }
 }
