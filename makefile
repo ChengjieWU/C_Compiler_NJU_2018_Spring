@@ -9,7 +9,10 @@ endif
 PARSER: lexical.l syntax.y main.c grammarTree.c type.c symbol.c semantic.c translate.c grammarTree.h type.h symbol.h semantic.h translate.h
 	@bison -d syntax.y
 	@flex lexical.l
-	@$(CC) main.c syntax.tab.c grammarTree.c type.c symbol.c semantic.c translate.c $(LINK_FLAG) -ly -o parser
+	@$(CC) main.c syntax.tab.c grammarTree.c type.c symbol.c semantic.c translate.c $(LINK_FLAG) -ly -o parser -w
+
+run: PARSER
+	@./parser example3/example2 example3/example2_sol
 
 clean:
 	@rm -rf parser syntax.tab.c syntax.tab.h lex.yy.c

@@ -36,7 +36,9 @@ int main(int argc, char** argv)
     yyparse();
     fclose(f);
     if (!lexicalError && !syntaxError) {
-        semantic_analysis();
+        // print_tree(grammarTreeRoot, 0);
+        // semantic_analysis();
+        // printf("Successful lexical and syntax analysis.\n");
         f = fopen(argv[2], "w");
         if (!f) {
             perror(argv[2]);

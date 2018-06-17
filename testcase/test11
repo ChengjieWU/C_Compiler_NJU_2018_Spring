@@ -1,5 +1,5 @@
 int main(int a, int b) {
-    return 0;
+    return a + b;
 }
 
 int hello() {
@@ -11,3 +11,4 @@ int hello() {
 int wcj(int z, int q, int t) {
     return 1;
 }
+

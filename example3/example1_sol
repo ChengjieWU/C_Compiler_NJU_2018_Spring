@@ -1,0 +1,30 @@
+FUNCTION main :
+READ __temp_variable_0__
+n := __temp_variable_0__
+n := __temp_variable_0__
+__temp_variable_1__ := n
+__temp_variable_2__ := #0
+IF __temp_variable_1__ > __temp_variable_2__ GOTO __LABEL_0__
+GOTO __LABEL_1__
+LABEL __LABEL_0__ :
+__temp_variable_3__ := #1
+WRITE __temp_variable_3__
+GOTO __LABEL_2__
+LABEL __LABEL_1__ :
+__temp_variable_4__ := n
+__temp_variable_5__ := #0
+IF __temp_variable_4__ < __temp_variable_5__ GOTO __LABEL_3__
+GOTO __LABEL_4__
+LABEL __LABEL_3__ :
+__temp_variable_7__ := #1
+__temp_variable_6__ := #0 - __temp_variable_7__
+WRITE __temp_variable_6__
+GOTO __LABEL_5__
+LABEL __LABEL_4__ :
+__temp_variable_8__ := #0
+WRITE __temp_variable_8__
+LABEL __LABEL_5__ :
+LABEL __LABEL_2__ :
+__temp_variable_9__ := #0
+RETURN __temp_variable_9__
+
