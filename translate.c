@@ -3,16 +3,15 @@
 #include <mm_malloc.h>
 #include "translate.h"
 
-/* 需要注意的是，此种实现下， */
+/* 需要注意的是，此种实现下，Exp 一定有返回值，生成返回赋值语句。但不一定有人接受。 */
+/* 故需要判断那个 result 为不为空，为空就忽略即可。 */
 
-bool display = true;
+bool display = false;
 
 struct Symbol_t *arg_list;
 
-void write_CB(CB cb, FILE *f);
-void format_operand_output(char *buffer, struct Operand op);
-CB append_CB(CB a, CB b);
 CB translate_IR();
+void write_CB(CB cb, FILE *f);
 CB translate_function(struct Node *extdef);
 CB translate_FunDec(struct Node *fundec);
 CB translate_CompSt(struct Node *compst);
@@ -23,12 +22,15 @@ CB translate_Exp(struct Node *exp, struct Symbol_t *place);
 CB translate_Cond(struct Node *exp, struct Symbol_t *label_true, struct Symbol_t *label_false);
 CB translate_Args(struct Node *args);
 
+int temp_variable_count;
+int label_count;
+
+void format_operand_output(char *buffer, struct Operand op);
+CB append_CB(CB a, CB b);
 CB generate_label_code(struct Symbol_t *label);
 CB generate_goto_code(struct Symbol_t *label);
 struct InterCode *new_code(enum ir_kind kind);
 struct Symbol_t *sym_table;
-int temp_variable_count;
-int label_count;
 struct Symbol_t *add_sym_table(char *name, enum sym_kind kind);
 struct Symbol_t *new_temp();
 struct Symbol_t *new_label();
@@ -51,8 +53,6 @@ CB translate_IR()
         }
         else if (strcmp(extdef->children[1]->type, "FunDec\0") == 0)  {
             cb = append_CB(cb, translate_function(extdef));
-            write_CB(cb, NULL);
-            printf("-----------------------------------------------");
         }
         extdeflist = extdeflist->children[1];
     }
