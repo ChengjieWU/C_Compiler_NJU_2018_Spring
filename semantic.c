@@ -21,8 +21,8 @@ void delete_parameterType_list(struct Parameters *head);
 
 void semantic_analysis()
 {
-    initializeSymbol();
     initializeType();
+    initializeSymbol();
     struct Node *extdeflist = grammarTreeRoot->children[0];
     while (extdeflist->num_children != 0) {
         struct Node *extdef = extdeflist->children[0];       // ExtDefList -> ExtDef ExtDefList | null.
@@ -422,7 +422,7 @@ void semantic_Stmt(struct Node *stmt, struct Symbol *func)
             printf("Error type 7 at Line %d: Type mismatched for operands.\n", stmt->children[2]->line);
             return;
         }
-        semantic_Stmt(stmt->children[4], NULL);
+        semantic_Stmt(stmt->children[4], func);
     }
     else {
         struct Exp e = semantic_Exp(stmt->children[2]);
@@ -433,9 +433,9 @@ void semantic_Stmt(struct Node *stmt, struct Symbol *func)
             printf("Error type 7 at Line %d: Type mismatched for operands.\n", stmt->children[2]->line);
             return;
         }
-        semantic_Stmt(stmt->children[4], NULL);
+        semantic_Stmt(stmt->children[4], func);
         if (stmt->num_children == 7) {
-            semantic_Stmt(stmt->children[6], NULL);
+            semantic_Stmt(stmt->children[6], func);
         }
     }
     return;

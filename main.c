@@ -4,7 +4,7 @@
 
 /* ------ IMPORTANT NOTICE ------ */
 /* change LAB to 1, 2, 3, 4 to check experiment output of 4 labs */
-#define LAB 3
+#define LAB 2
 /* ------------------------------ */
 
 extern int yylineno;
@@ -24,7 +24,39 @@ void initialize_error_status()
     generalErrorLine = -1;
 }
 
-#if LAB == 3
+#if LAB == 4
+
+int main(int argc, char** argv)
+{
+    if (argc != 3) {
+        return -1;
+    }
+    FILE* f = fopen(argv[1], "r");
+    if (!f) {
+        perror(argv[1]);
+        return -1;
+    }
+    initialize_error_status();
+    yyrestart(f);
+    yylineno = 1;
+    yyparse();
+    fclose(f);
+    if (!lexicalError && !syntaxError) {
+        printf("haha\n");
+        semantic_analysis();
+        printSymbols();
+        // CB ic = translate_IR();
+        // f = fopen(argv[2], "w");
+        // if (!f) {
+        //     perror(argv[2]);
+        //     return -1;
+        // }
+        // fclose(f);
+    }
+    return 0;
+}
+
+#elif LAB == 3
 
 int main(int argc, char** argv)
 {
