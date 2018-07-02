@@ -112,11 +112,23 @@ CB translate_DefList(struct Node *deflist)
         struct Node *declist = deflist->children[0]->children[1];
         while (declist != NULL) {
             struct Node *dec = declist->children[0];
-            struct Node *id = dec->children[0]->children[0];
-            struct Symbol_t *sym = add_sym_table(id->type_string, SYM_VAR);
-            if (dec->num_children == 3) {
-                struct Node *exp = dec->children[2];
-                cb = append_CB(cb, translate_Exp(exp, sym));
+            struct Node *vardec = dec->children[0];
+            /* 注意，此处仅考虑一维数组的情况！！！ */
+            if (vardec->num_children == 1) {
+                struct Node *id = vardec->children[0];
+                struct Symbol_t *sym = add_sym_table(id->type_string, SYM_VAR);
+                if (dec->num_children == 3) {
+                    struct Node *exp = dec->children[2];
+                    cb = append_CB(cb, translate_Exp(exp, sym));
+                }
+            }
+            else {
+                /* 注意，此处默认语义正确！！！无法对数组直接赋值初始化 */
+                struct Node *id = vardec->children[0]->children[0];
+                if (strcmp(id->type, "ID") != 0) perror("One dimension array only!");
+                struct Symbol_t *sym = add_sym_table(id->type_string, SYM_ARRAY);
+                sym->ele_width = ELE_WIDTH;
+                sym->array_width = vardec->children[2]->type_int * sym->ele_width;
             }
             if (declist->num_children == 3) declist = declist->children[2];
             else break;
@@ -215,25 +227,90 @@ CB translate_Exp(struct Node *exp, struct Symbol_t *place)
             cb.begin = cb.end = code;
         }
     }
+    /* 加入了对一维数组某个元素的复制 */
     else if (strcmp(exp->children[1]->type, "ASSIGNOP\0") == 0) {
-        struct Symbol_t *variable = search_sym_table(exp->children[0]->children[0]->type_string);
-        struct Symbol_t *t1 = new_temp();
-        cb = translate_Exp(exp->children[2], t1);
-        CB cbt;
-        struct InterCode *code = new_code(IR_ASSIGN);
-        code->op1.kind = OP_VAR;
-        code->op1.sym = t1;
-        code->result.kind = OP_VAR;
-        code->result.sym = variable;
-        cbt.begin = cbt.end = code;
-        cb = append_CB(cb, cbt);
-        code = new_code(IR_ASSIGN);
-        code->op1.kind = OP_VAR;
-        code->op1.sym = variable;
-        code->result.kind = OP_VAR;
-        code->result.sym = place;
-        cbt.begin = cbt.end = code;
-        cb = append_CB(cb, cbt);
+        if (strcmp(exp->children[0]->children[0]->type, "ID") == 0) {
+            struct Symbol_t *variable = search_sym_table(exp->children[0]->children[0]->type_string);
+            struct Symbol_t *t1 = new_temp();
+            cb = translate_Exp(exp->children[2], t1);
+            CB cbt;
+            struct InterCode *code = new_code(IR_ASSIGN);
+            code->op1.kind = OP_VAR;
+            code->op1.sym = t1;
+            code->result.kind = OP_VAR;
+            code->result.sym = variable;
+            cbt.begin = cbt.end = code;
+            cb = append_CB(cb, cbt);
+            code = new_code(IR_ASSIGN);
+            code->op1.kind = OP_VAR;
+            code->op1.sym = variable;
+            code->result.kind = OP_VAR;
+            code->result.sym = place;
+            cbt.begin = cbt.end = code;
+            cb = append_CB(cb, cbt);
+        }
+        else {
+            struct Symbol_t *t0 = new_temp();
+            cb = translate_Exp(exp->children[2], t0);
+
+            struct Node *array = exp->children[0];
+            struct Node *id = array->children[0]->children[0];
+            if (strcmp(id->type, "ID") != 0) perror("One dimensional array only!");
+            
+            struct Symbol_t *t1 = new_temp();
+            cb = append_CB(cb, translate_Exp(array->children[2], t1));
+
+            struct Symbol_t *sym = search_sym_table(id->type_string);
+            struct InterCode *code;
+            CB cbt;
+
+            code = new_code(IR_MUL);
+            struct Symbol_t *t2 = new_temp();
+            code->op1.kind = OP_VAR;
+            code->op1.sym = t1;
+            code->op2.kind = OP_CONSTANT;
+            code->op2.value = sym->ele_width;
+            code->result.kind = OP_VAR;
+            code->result.sym = t2;
+            cbt.begin = cbt.end = code;
+            cb = append_CB(cb, cbt);
+
+            code = new_code(IR_ADDRESS);
+            struct Symbol_t *t3 = new_temp();
+            code->op1.kind = OP_VAR;
+            code->op1.sym = sym;
+            code->result.kind = OP_VAR;
+            code->result.sym = t3;
+            cbt.begin = cbt.end = code;
+            cb = append_CB(cb, cbt);
+
+            code = new_code(IR_ADD);
+            struct Symbol_t *t4 = new_temp();
+            code->op1.kind = OP_VAR;
+            code->op1.sym = t2;
+            code->op2.kind = OP_VAR;
+            code->op2.sym = t3;
+            code->result.kind = OP_VAR;
+            code->result.sym = t4;
+            cbt.begin = cbt.end = code;
+            cb = append_CB(cb, cbt);
+
+            code = new_code(IR_POINTL);
+            code->op1.kind = OP_VAR;
+            code->op1.sym = t0;
+            code->result.kind = OP_VAR;
+            code->result.sym = t4;
+            cbt.begin = cbt.end = code;
+            cb = append_CB(cb, cbt);
+
+            code = new_code(IR_ASSIGN);
+            code->op1.kind = OP_VAR;
+            code->op1.sym = t0;
+            code->result.kind = OP_VAR;
+            code->result.sym = place;
+            cbt.begin = cbt.end = code;
+            cb = append_CB(cb, cbt);
+        }
     }
     else if (strcmp(exp->children[1]->type, "PLUS") == 0 || 
             strcmp(exp->children[1]->type, "MINUS") == 0 || 
@@ -359,6 +436,56 @@ CB translate_Exp(struct Node *exp, struct Symbol_t *place)
             cbt.begin = cbt.end = code;
             cb = append_CB(cb, cbt);
         }
+    }
+    /* 一维数组的引用取值 */
+    else if (strcmp(exp->children[1]->type, "LB") == 0) {
+        struct Node *id = exp->children[0]->children[0];
+        if (strcmp(id->type, "ID") != 0) perror("One dimensional array only!");
+        struct Symbol_t *t1 = new_temp();
+        cb = append_CB(cb, translate_Exp(exp->children[2], t1));
+
+        struct Symbol_t *sym = search_sym_table(id->type_string);
+        struct InterCode *code;
+        CB cbt;
+
+        code = new_code(IR_MUL);
+        struct Symbol_t *t2 = new_temp();
+        code->op1.kind = OP_VAR;
+        code->op1.sym = t1;
+        code->op2.kind = OP_CONSTANT;
+        code->op2.value = sym->ele_width;
+        code->result.kind = OP_VAR;
+        code->result.sym = t2;
+        cbt.begin = cbt.end = code;
+        cb = append_CB(cb, cbt);
+
+        code = new_code(IR_ADDRESS);
+        struct Symbol_t *t3 = new_temp();
+        code->op1.kind = OP_VAR;
+        code->op1.sym = sym;
+        code->result.kind = OP_VAR;
+        code->result.sym = t3;
+        cbt.begin = cbt.end = code;
+        cb = append_CB(cb, cbt);
+
+        code = new_code(IR_ADD);
+        struct Symbol_t *t4 = new_temp();
+        code->op1.kind = OP_VAR;
+        code->op1.sym = t2;
+        code->op2.kind = OP_VAR;
+        code->op2.sym = t3;
+        code->result.kind = OP_VAR;
+        code->result.sym = t4;
+        cbt.begin = cbt.end = code;
+        cb = append_CB(cb, cbt);
+
+        code = new_code(IR_POINTR);
+        code->op1.kind = OP_VAR;
+        code->op1.sym = t4;
+        code->result.kind = OP_VAR;
+        code->result.sym = place;
+        cbt.begin = cbt.end = code;
+        cb = append_CB(cb, cbt);
     }
     return cb;
 }
@@ -562,6 +689,7 @@ void write_CB(CB cb, FILE *f)
     struct InterCode *p = cb.begin;
     for (; p != NULL; p = p->next) {
         char buffer[MAX_CODE_LEN];
+        bool update = true;
         char op1_buffer[MAX_CODE_LEN];
         char op2_buffer[MAX_CODE_LEN];
         switch (p->kind) {
@@ -575,30 +703,53 @@ void write_CB(CB cb, FILE *f)
                 format_operand_output(op1_buffer, p->op1);
                 if (p->result.sym != NULL)
                     sprintf(buffer, "%s := %s", p->result.sym->name, op1_buffer);
+                else update = false;
                 break;
             case IR_ADD:
                 format_operand_output(op1_buffer, p->op1);
                 format_operand_output(op2_buffer, p->op2);
                 if (p->result.sym != NULL)
                     sprintf(buffer, "%s := %s + %s", p->result.sym->name, op1_buffer, op2_buffer);
+                else update = false;
                 break;
             case IR_MINUS:
                 format_operand_output(op1_buffer, p->op1);
                 format_operand_output(op2_buffer, p->op2);
                 if (p->result.sym != NULL)
                     sprintf(buffer, "%s := %s - %s", p->result.sym->name, op1_buffer, op2_buffer);
+                else update = false;
                 break;
             case IR_MUL:
                 format_operand_output(op1_buffer, p->op1);
                 format_operand_output(op2_buffer, p->op2);
                 if (p->result.sym != NULL)
                     sprintf(buffer, "%s := %s * %s", p->result.sym->name, op1_buffer, op2_buffer);
+                else update = false;
                 break;
             case IR_DIV:
                 format_operand_output(op1_buffer, p->op1);
                 format_operand_output(op2_buffer, p->op2);
                 if (p->result.sym != NULL)
                     sprintf(buffer, "%s := %s / %s", p->result.sym->name, op1_buffer, op2_buffer);
+                else update = false;
+                break;
+            case IR_ADDRESS:
+                format_operand_output(op1_buffer, p->op1);
+                if (p->result.sym != NULL)
+                    sprintf(buffer, "%s := &%s", p->result.sym->name, op1_buffer);
+                else update = false;
+                break;
+            case IR_POINTL:
+                format_operand_output(op1_buffer, p->op1);
+                if (p->result.sym != NULL)
+                    sprintf(buffer, "*%s := %s", p->result.sym->name, op1_buffer);
+                else update = false;
+                break;
+            case IR_POINTR:
+                format_operand_output(op1_buffer, p->op1);
+                if (p->result.sym != NULL)
+                    sprintf(buffer, "%s := *%s", p->result.sym->name, op1_buffer);
+                else update = false;
                 break;
             case IR_GOTO:
                 sprintf(buffer, "GOTO %s", p->op1.sym->name);
@@ -658,7 +809,7 @@ void write_CB(CB cb, FILE *f)
             default:
                 break;
         }
-        if (f != NULL) fprintf(f, "%s\n", buffer);
+        if (f != NULL && update == true) fprintf(f, "%s\n", buffer);
         if (display) printf("%s\n", buffer);
     }
     return;

@@ -6,7 +6,9 @@
 #define SYMBOL_T_NAME_MAX_LEN 32
 #define MAX_CODE_LEN 128
 
-enum sym_kind {SYM_VAR, SYM_FUNC, SYM_LABEL};
+#define ELE_WIDTH 4
+
+enum sym_kind {SYM_VAR, SYM_FUNC, SYM_LABEL, SYM_ARRAY};
 enum op_kind {OP_VAR, OP_CONSTANT, OP_FUNC, OP_LABEL};
 enum ir_kind {IR_LABEL, IR_FUNCTION, IR_ASSIGN, IR_ADD,
 IR_MINUS, IR_MUL, IR_DIV, IR_ADDRESS, IR_POINTL, IR_POINTR,
@@ -18,6 +20,8 @@ struct Symbol_t {
     char name[SYMBOL_T_NAME_MAX_LEN];
     struct Symbol_t *next;
     struct Symbol_t *arg_next;
+    int array_width;
+    int ele_width;
 };
 
 struct Operand {

@@ -5,7 +5,7 @@
 
 #define SYMBOL_NAME_MAX_LEN 32
 
-enum symbolKind {VARIABLE, FUNCTION, STRUCT};
+enum symbolKind {VARIABLE, FUNCTION, STRUCT, FUNC_WRITE, FUNC_READ};
 
 struct Symbol {
     enum symbolKind kind;               // 符号类型

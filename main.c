@@ -4,7 +4,7 @@
 
 /* ------ IMPORTANT NOTICE ------ */
 /* change LAB to 1, 2, 3, 4 to check experiment output of 4 labs */
-#define LAB 2
+#define LAB 4
 /* ------------------------------ */
 
 extern int yylineno;
@@ -42,16 +42,15 @@ int main(int argc, char** argv)
     yyparse();
     fclose(f);
     if (!lexicalError && !syntaxError) {
-        printf("haha\n");
         semantic_analysis();
-        printSymbols();
-        // CB ic = translate_IR();
-        // f = fopen(argv[2], "w");
-        // if (!f) {
-        //     perror(argv[2]);
-        //     return -1;
-        // }
-        // fclose(f);
+        CB ic = translate_IR();
+        f = fopen(argv[2], "w");
+        if (!f) {
+            perror(argv[2]);
+            return -1;
+        }
+        write_CB(ic, f);
+        fclose(f);
     }
     return 0;
 }

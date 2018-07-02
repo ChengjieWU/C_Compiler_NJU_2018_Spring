@@ -6,6 +6,10 @@
 void initializeSymbol()
 {
     rootHead = NULL;
+    struct Symbol *sym = add_function("read", typeInt, NULL);
+    sym->kind = FUNC_READ;
+    sym = add_function("write", typeInt, NULL);
+    sym->kind = FUNC_WRITE;
 }
 
 void printSymbols()

@@ -314,6 +314,12 @@ struct Exp semantic_Exp(struct Node *exp)
             e.type = NULL;
             return e;
         }
+        /* 对于 FUNC_READ 和 FUNC_WRITE 不进行语义检查！！！ */
+        if (func->kind == FUNC_READ || func->kind == FUNC_WRITE) {
+            e.type = func->structure;
+            e.var = false;
+            return e;
+        }
         if (func->kind != FUNCTION) {
             printf("Error type 11 at Line %d: \"%s\" is not a function.\n", exp->line, exp->children[0]->type_string);
             e.type = NULL;
