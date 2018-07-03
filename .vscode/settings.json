@@ -1,1 +1,9 @@
-{}
+{
+    "files.associations": {
+        "codegeneration.h": "c",
+        "__bit_reference": "c",
+        "deque": "c",
+        "memory": "c",
+        "type_traits": "c"
+    }
+}

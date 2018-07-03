@@ -1,7 +1,6 @@
 FUNCTION main :
 READ __temp_variable_0__
 n := __temp_variable_0__
-n := __temp_variable_0__
 __temp_variable_1__ := n
 __temp_variable_2__ := #0
 IF __temp_variable_1__ > __temp_variable_2__ GOTO __LABEL_0__
@@ -27,4 +26,3 @@ LABEL __LABEL_5__ :
 LABEL __LABEL_2__ :
 __temp_variable_9__ := #0
 RETURN __temp_variable_9__
-

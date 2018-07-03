@@ -77,11 +77,14 @@ CB translate_FunDec(struct Node *fundec)
     struct InterCode *p = new_code(IR_FUNCTION);
     p->op1.kind = OP_FUNC;
     p->op1.sym = add_sym_table(fundec->children[0]->type_string, SYM_FUNC);
+    struct Symbol_t *func = p->op1.sym;
+    func->num_params = 0;
     cb.begin = p;
     cb.end = p;
     if (fundec->num_children == 4) {
         struct Node *varlist = fundec->children[2];
         while (varlist != NULL) {
+            func->num_params++;
             struct Node *id = varlist->children[0]->children[1]->children[0];
             p = new_code(IR_PARAM);
             p->op1.kind = OP_VAR;

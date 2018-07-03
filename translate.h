@@ -20,8 +20,10 @@ struct Symbol_t {
     char name[SYMBOL_T_NAME_MAX_LEN];
     struct Symbol_t *next;
     struct Symbol_t *arg_next;
-    int array_width;
-    int ele_width;
+    int array_width;            // 当 kind 为 SYM_ARRAY 时有效，表示整个数组的空间大小
+    int ele_width;              // 当 kind 为 SYM_ARRAY 时有效，表示每个数组元素的空间大小
+    int num_params;             // 当 kind 为 SYM_FUNC 时有效，表示该函数的参数个数
+    int offset;                 // 当 kind 为 SYM_VAR 或 SYM_ARRAY 时有效，记录每一个符号在栈中存储位置的偏移
 };
 
 struct Operand {

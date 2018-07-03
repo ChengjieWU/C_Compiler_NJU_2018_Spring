@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "semantic.h"
 #include "translate.h"
+#include "codeGeneration.h"
 
 /* ------ IMPORTANT NOTICE ------ */
 /* change LAB to 1, 2, 3, 4 to check experiment output of 4 labs */
@@ -49,6 +50,7 @@ int main(int argc, char** argv)
             perror(argv[2]);
             return -1;
         }
+        generate_code(ic, f);
         write_CB(ic, f);
         fclose(f);
     }

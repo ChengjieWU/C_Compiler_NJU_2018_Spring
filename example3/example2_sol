@@ -21,7 +21,6 @@ LABEL __LABEL_2__ :
 FUNCTION main :
 READ __temp_variable_9__
 m := __temp_variable_9__
-m := __temp_variable_9__
 __temp_variable_10__ := m
 __temp_variable_11__ := #1
 IF __temp_variable_10__ > __temp_variable_11__ GOTO __LABEL_3__
@@ -31,11 +30,9 @@ __temp_variable_13__ := m
 ARG __temp_variable_13__
 __temp_variable_12__ := CALL fact
 result := __temp_variable_12__
-result := __temp_variable_12__
 GOTO __LABEL_5__
 LABEL __LABEL_4__ :
 __temp_variable_14__ := #1
-result := __temp_variable_14__
 result := __temp_variable_14__
 LABEL __LABEL_5__ :
 __temp_variable_15__ := result
