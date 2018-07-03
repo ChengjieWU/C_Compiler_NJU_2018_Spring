@@ -2,7 +2,6 @@
 
 extern struct Symbol_t *sym_table;
 int params_count = 0;
-int params_iter = 0;
 int space_size = 0;
 
 void generate_text(CB ic, FILE *f)
@@ -16,11 +15,6 @@ void generate_text(CB ic, FILE *f)
             case IR_FUNCTION:
                 fprintf(f, "%s:\n", code->op1.sym->name);
                 params_count = code->op1.sym->num_params;
-                params_iter = 0;
-                fprintf(f, "    addi $sp, $sp, -4\n");
-                fprintf(f, "    sw $fp, 0($sp)\n");
-                fprintf(f, "    move $fp, $sp\n");
-                fprintf(f, "    addi $sp, $sp, -%d\n", space_size);
                 break;
             case IR_ASSIGN:
                 if (code->result.sym != NULL) {
@@ -63,7 +57,7 @@ void generate_text(CB ic, FILE *f)
                 break;
             case IR_ADDRESS:
                 if (code->result.sym != NULL) {
-                    fprintf(f, "    addi $t0, $fp, -%d\n", lookup_offset(code->op1.sym->name));
+                    fprintf(f, "    la $t0, ASSPRE_%s\n", code->op1.sym->name);
                     store_register_symbol(code->result.sym, 0, f);
                 }
                 break;
@@ -117,23 +111,18 @@ void generate_text(CB ic, FILE *f)
             case IR_RETURN:
                 load_operand(code->op1, 0, f);
                 fprintf(f, "    move $v0, $t0\n");
-                fprintf(f, "    move $sp, $fp\n");
-                fprintf(f, "    lw $fp, 0($sp)\n");
-                fprintf(f, "    addi $sp, $sp, 4\n");
                 fprintf(f, "    jr $ra\n");
                 break;
             case IR_ARG:
                 load_operand(code->op1, 0, f);
-                // if (params_count < 4) {
-                //     fprintf(f, "    move $a%d, $t0\n", params_count++);
-                // }
-                // else {
-                //     fprintf(f, "    addi $sp, $sp, -4\n");
-                //     fprintf(f, "sw $t0, 0($sp)\n");
-                //     params_count++;
-                // }
-                fprintf(f, "    addi $sp, $sp, -4\n");
-                fprintf(f, "    sw $t0, 0($sp)\n");
+                if (params_count < 4) {
+                    fprintf(f, "    move $a%d, $t0\n", params_count++);
+                }
+                else {
+                    fprintf(f, "    addi $sp, $sp, -4\n");
+                    fprintf(f, "sw $t0, 0($sp)\n");
+                    params_count++;
+                }
                 break;
             case IR_CALL:
                 fprintf(f, "    addi $sp, $sp, -4\n");
@@ -143,19 +132,15 @@ void generate_text(CB ic, FILE *f)
                 fprintf(f, "    addi $sp, $sp, 4\n");
                 fprintf(f, "    move $t0, $v0\n");
                 store_register_symbol(code->result.sym, 0, f);
-                /* 这边没有跟踪参数空间，因此难以恢复。由于临时变量空间固定，因此从 fp 重新算！！！ */
-                fprintf(f, "    addi $sp, $fp, -%d\n", space_size);
                 break;
             case IR_PARAM:
-                // if (params_count <= 4) {
-                //     fprintf(f, "    move $t0, $a%d\n", --params_count);
-                // }
-                // else {
-                //     fprintf(f, "    lw $t0, %d($sp)\n", (params_count-4)*4);
-                //     params_count--;
-                // }
-                fprintf(f, "    lw $t0, %d($fp)\n", params_iter*4+8);
-                params_iter++;
+                if (params_count <= 4) {
+                    fprintf(f, "    move $t0, $a%d\n", --params_count);
+                }
+                else {
+                    fprintf(f, "    lw $t0, %d($sp)\n", (params_count-4)*4);
+                    params_count--;
+                }
                 store_register_symbol(code->op1.sym, 0, f);
                 break;
             case IR_READ:
@@ -220,17 +205,6 @@ int calculate_offset()
     return offset;
 }
 
-int lookup_offset(char *name)
-{
-    struct Symbol_t *sym = sym_table;
-    for (; sym != NULL; sym = sym->next) {
-        if (strcmp(sym->name, name) == 0) {
-            return sym->offset;
-        }
-    }
-    return -1;
-}
-
 bool copy_from_file(char source_file[], FILE *f)
 {
     FILE *assemble_source = fopen(source_file, "r");
@@ -268,20 +242,16 @@ void load_operand(struct Operand op, int reg, FILE *f) {
 
 void load_register_symbol(struct Symbol_t *sym, int reg, FILE *f)
 {
-    // regs[reg].free = false;
-    // regs[reg].sym = sym;
-    // fprintf(f, "    la $s0, ASSPRE_%s\n", sym->name);
-    // fprintf(f, "    lw $t%d, 0($s0)\n", reg);
-    int offset = lookup_offset(sym->name);
-    fprintf(f, "    lw $t%d, -%d($fp)\n", reg, offset);
+    regs[reg].free = false;
+    regs[reg].sym = sym;
+    fprintf(f, "    la $s0, ASSPRE_%s\n", sym->name);
+    fprintf(f, "    lw $t%d, 0($s0)\n", reg);
 }
 
 void store_register_symbol(struct Symbol_t *sym, int reg, FILE *f)
 {
-    // fprintf(f, "    la $s0, ASSPRE_%s\n", sym->name);
-    // fprintf(f, "    sw $t%d, 0($s0)\n", reg);
-    int offset = lookup_offset(sym->name);
-    fprintf(f, "    sw $t%d, -%d($fp)\n", reg, offset);
+    fprintf(f, "    la $s0, ASSPRE_%s\n", sym->name);
+    fprintf(f, "    sw $t%d, 0($s0)\n", reg);
 }
 
 void generate_code(CB ic, FILE *f)

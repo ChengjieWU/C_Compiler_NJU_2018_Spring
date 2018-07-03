@@ -51,7 +51,7 @@ int main(int argc, char** argv)
             return -1;
         }
         generate_code(ic, f);
-        write_CB(ic, f);
+        // write_CB(ic, f);
         fclose(f);
     }
     return 0;

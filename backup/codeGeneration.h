@@ -17,7 +17,6 @@ void load_operand(struct Operand op, int reg, FILE *f);
 void load_register_symbol(struct Symbol_t *sym, int reg, FILE *f);
 void store_register_symbol(struct Symbol_t *sym, int reg, FILE *f);
 int calculate_offset();
-int lookup_offset(char *name);
 
 struct Register
 {
