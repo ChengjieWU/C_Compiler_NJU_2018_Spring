@@ -8,6 +8,20 @@ int params_iter = 0;
 int space_size = 0;
 int reg_scan = 0;
 
+/* 针对寄存器的动态分配 */
+/*
+用 FUNCTION 和 LABEl 作为点来划分基本块，基本块之间的转移可以通过
+顺序执行、goto 和条件跳转、函数调用和返回。
+注意，这边有一点很搞的。既要保持编译器本身数据结构，记录哪些是 free
+哪些不是，也要考虑目标程序执行过程的情况。这两个是很很搞的。
+由于基本块之间的执行顺序不确定，因此寄存器的分配必须是在基本块内部的。
+call 语句跳转前要 dump 一下，return 时由于子函数的局部变量都会丢弃，
+所以不需要再 dump 回去，只要是元控制上 regs 都是 free 即可。
+FUNCTION 表示一个函数开始了，将元控制赋为 free。（绝对不能少）
+GOTO 和条件跳转执行前要将寄存器 dump 回去。
+顺序进入 LABEL 前要把寄存器 dump 回去。
+*/
+
 
 void generate_text(CB ic, FILE *f)
 {
