@@ -91,7 +91,7 @@ void generate_text(CB ic, FILE *f)
             case IR_ADDRESS:
                 if (code->result.sym != NULL) {
                     r0 = link_symbol_register(code->result.sym, f);
-                    fprintf(f, "    addi $t%d, $fp, -%d\n", r0, lookup_offset(code->op1.sym->name));
+                    fprintf(f, "    addi $t%d, $fp, -%d\n", r0, space_size-lookup_offset(code->op1.sym->name));
                 }
                 break;
             case IR_POINTL:
@@ -358,7 +358,7 @@ void dump_register(int reg, FILE* f)
 void load_register_symbol(struct Symbol_t *sym, int reg, FILE *f)
 {
     int offset = lookup_offset(sym->name);
-    fprintf(f, "    lw $t%d, -%d($fp)\n", reg, offset);
+    fprintf(f, "    lw $t%d, -%d($fp)\n", reg, space_size-offset);
     sym->dirty = false;
     regs[reg].free = false;
     regs[reg].value = false;
@@ -368,7 +368,7 @@ void load_register_symbol(struct Symbol_t *sym, int reg, FILE *f)
 void store_register_symbol(struct Symbol_t *sym, int reg, FILE *f)
 {
     int offset = lookup_offset(sym->name);
-    fprintf(f, "    sw $t%d, -%d($fp)\n", reg, offset);
+    fprintf(f, "    sw $t%d, -%d($fp)\n", reg, space_size-offset);
     sym->dirty = false;
 }
 

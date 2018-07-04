@@ -1,0 +1,29 @@
+FUNCTION main :
+a := #0
+b := #1
+i := #0
+READ __temp_variable_0__
+n := __temp_variable_0__
+LABEL __LABEL_0__ :
+__temp_variable_1__ := i
+__temp_variable_2__ := n
+IF __temp_variable_1__ < __temp_variable_2__ GOTO __LABEL_1__
+GOTO __LABEL_2__
+LABEL __LABEL_1__ :
+__temp_variable_3__ := a
+__temp_variable_4__ := b
+c := __temp_variable_3__ + __temp_variable_4__
+__temp_variable_5__ := b
+WRITE __temp_variable_5__
+__temp_variable_6__ := b
+a := __temp_variable_6__
+__temp_variable_7__ := c
+b := __temp_variable_7__
+__temp_variable_9__ := i
+__temp_variable_10__ := #1
+__temp_variable_8__ := __temp_variable_9__ + __temp_variable_10__
+i := __temp_variable_8__
+GOTO __LABEL_0__
+LABEL __LABEL_2__ :
+__temp_variable_11__ := #0
+RETURN __temp_variable_11__

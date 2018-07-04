@@ -1,0 +1,41 @@
+FUNCTION fact :
+PARAM n
+__temp_variable_0__ := n
+__temp_variable_1__ := #1
+IF __temp_variable_0__ == __temp_variable_1__ GOTO __LABEL_0__
+GOTO __LABEL_1__
+LABEL __LABEL_0__ :
+__temp_variable_2__ := n
+RETURN __temp_variable_2__
+GOTO __LABEL_2__
+LABEL __LABEL_1__ :
+__temp_variable_4__ := n
+__temp_variable_7__ := n
+__temp_variable_8__ := #1
+__temp_variable_6__ := __temp_variable_7__ - __temp_variable_8__
+ARG __temp_variable_6__
+__temp_variable_5__ := CALL fact
+__temp_variable_3__ := __temp_variable_4__ * __temp_variable_5__
+RETURN __temp_variable_3__
+LABEL __LABEL_2__ :
+FUNCTION main :
+READ __temp_variable_9__
+m := __temp_variable_9__
+__temp_variable_10__ := m
+__temp_variable_11__ := #1
+IF __temp_variable_10__ > __temp_variable_11__ GOTO __LABEL_3__
+GOTO __LABEL_4__
+LABEL __LABEL_3__ :
+__temp_variable_13__ := m
+ARG __temp_variable_13__
+__temp_variable_12__ := CALL fact
+result := __temp_variable_12__
+GOTO __LABEL_5__
+LABEL __LABEL_4__ :
+__temp_variable_14__ := #1
+result := __temp_variable_14__
+LABEL __LABEL_5__ :
+__temp_variable_15__ := result
+WRITE __temp_variable_15__
+__temp_variable_16__ := #0
+RETURN __temp_variable_16__

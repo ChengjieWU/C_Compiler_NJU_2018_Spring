@@ -36,24 +36,24 @@ main:
     addi $sp, $sp, 4
     move $t6, $v0
     move $t7, $t6
-    sw $t1, -64($fp)
-    sw $t3, -60($fp)
-    sw $t5, -56($fp)
-    sw $t6, -48($fp)
-    sw $t7, -52($fp)
+    sw $t1, -4($fp)
+    sw $t3, -8($fp)
+    sw $t5, -12($fp)
+    sw $t6, -20($fp)
+    sw $t7, -16($fp)
 __LABEL_0__:
-    lw $t8, -56($fp)
+    lw $t8, -12($fp)
     move $t9, $t8
-    lw $t0, -52($fp)
+    lw $t0, -16($fp)
     move $t1, $t0
-    sw $t1, -40($fp)
-    sw $t9, -44($fp)
+    sw $t1, -28($fp)
+    sw $t9, -24($fp)
     blt $t9, $t1, __LABEL_1__
     j __LABEL_2__
 __LABEL_1__:
-    lw $t2, -64($fp)
+    lw $t2, -4($fp)
     move $t3, $t2
-    lw $t4, -60($fp)
+    lw $t4, -8($fp)
     move $t5, $t4
     add $t6, $t3, $t5
     move $t7, $t4
@@ -67,24 +67,24 @@ __LABEL_1__:
     move $t2, $t8
     move $t9, $t6
     move $t4, $t9
-    lw $t0, -56($fp)
+    lw $t0, -12($fp)
     move $t1, $t0
-    sw $t2, -64($fp)
+    sw $t2, -4($fp)
     li $t2, 1
-    sw $t3, -32($fp)
+    sw $t3, -36($fp)
     move $t3, $t2
-    sw $t4, -60($fp)
+    sw $t4, -8($fp)
     add $t4, $t1, $t3
     move $t0, $t4
-    sw $t0, -56($fp)
-    sw $t1, -8($fp)
-    sw $t3, -4($fp)
-    sw $t4, -12($fp)
-    sw $t5, -28($fp)
-    sw $t6, -36($fp)
-    sw $t7, -24($fp)
-    sw $t8, -20($fp)
-    sw $t9, -16($fp)
+    sw $t0, -12($fp)
+    sw $t1, -60($fp)
+    sw $t3, -64($fp)
+    sw $t4, -56($fp)
+    sw $t5, -40($fp)
+    sw $t6, -32($fp)
+    sw $t7, -44($fp)
+    sw $t8, -48($fp)
+    sw $t9, -52($fp)
     j __LABEL_0__
 __LABEL_2__:
     li $t5, 0

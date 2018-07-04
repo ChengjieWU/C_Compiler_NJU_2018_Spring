@@ -19,8 +19,7 @@ int calculate_offset();
 int lookup_offset(char *name);
 int reg_load_operand(struct Operand op, FILE *f);
 void dump_register(int reg, FILE* f);
-int link_symbol_register(struct Symbol_t *sym, FILE *f);
-
+int link_symbol_register(struct Symbol_t *sym, FILE *f); 
 void print_regs();
 
 
