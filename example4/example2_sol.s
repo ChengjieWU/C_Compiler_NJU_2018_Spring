@@ -24,57 +24,53 @@ fact:
     move $fp, $sp
     addi $sp, $sp, -80
     lw $t0, 8($fp)
+    move $t1, $t0
+    li $t2, 1
+    move $t3, $t2
     sw $t0, -76($fp)
-    lw $t0, -76($fp)
-    sw $t0, -72($fp)
-    li $t0, 1
-    sw $t0, -68($fp)
-    lw $t0, -72($fp)
-    lw $t1, -68($fp)
-    beq $t0, $t1, __LABEL_0__
+    sw $t1, -72($fp)
+    sw $t3, -68($fp)
+    beq $t1, $t3, __LABEL_0__
     j __LABEL_1__
 __LABEL_0__:
-    lw $t0, -76($fp)
-    sw $t0, -64($fp)
-    lw $t0, -64($fp)
-    move $v0, $t0
+    lw $t4, -76($fp)
+    move $t5, $t4
+    move $v0, $t5
     move $sp, $fp
     lw $fp, 0($sp)
     addi $sp, $sp, 4
     jr $ra
+    sw $t5, -64($fp)
     j __LABEL_2__
 __LABEL_1__:
-    lw $t0, -76($fp)
-    sw $t0, -56($fp)
-    lw $t0, -76($fp)
-    sw $t0, -44($fp)
-    li $t0, 1
-    sw $t0, -40($fp)
-    lw $t0, -44($fp)
-    lw $t1, -40($fp)
-    sub $t2, $t0, $t1
-    sw $t2, -48($fp)
-    lw $t0, -48($fp)
+    lw $t6, -76($fp)
+    move $t7, $t6
+    move $t8, $t6
+    li $t9, 1
+    move $t0, $t9
+    sub $t1, $t8, $t0
     addi $sp, $sp, -4
-    sw $t0, 0($sp)
+    sw $t1, 0($sp)
+    sw $t0, -40($fp)
+    sw $t1, -48($fp)
+    sw $t7, -56($fp)
+    sw $t8, -44($fp)
     addi $sp, $sp, -4
     sw $ra, 0($sp)
     jal fact
     lw $ra, 0($sp)
     addi $sp, $sp, 4
-    move $t0, $v0
-    sw $t0, -52($fp)
+    move $t2, $v0
     addi $sp, $fp, -80
-    lw $t0, -56($fp)
-    lw $t1, -52($fp)
-    mul $t2, $t0, $t1
-    sw $t2, -60($fp)
-    lw $t0, -60($fp)
-    move $v0, $t0
+    lw $t3, -56($fp)
+    mul $t4, $t3, $t2
+    move $v0, $t4
     move $sp, $fp
     lw $fp, 0($sp)
     addi $sp, $sp, 4
     jr $ra
+    sw $t2, -52($fp)
+    sw $t4, -60($fp)
 __LABEL_2__:
 main:
     addi $sp, $sp, -4
@@ -86,53 +82,51 @@ main:
     jal read
     lw $ra, 0($sp)
     addi $sp, $sp, 4
-    move $t0, $v0
-    sw $t0, -28($fp)
-    lw $t0, -28($fp)
-    sw $t0, -36($fp)
-    lw $t0, -36($fp)
-    sw $t0, -24($fp)
-    li $t0, 1
-    sw $t0, -20($fp)
-    lw $t0, -24($fp)
-    lw $t1, -20($fp)
-    bgt $t0, $t1, __LABEL_3__
+    move $t5, $v0
+    move $t6, $t5
+    move $t7, $t6
+    li $t8, 1
+    move $t9, $t8
+    sw $t5, -28($fp)
+    sw $t6, -36($fp)
+    sw $t7, -24($fp)
+    sw $t9, -20($fp)
+    bgt $t7, $t9, __LABEL_3__
     j __LABEL_4__
 __LABEL_3__:
     lw $t0, -36($fp)
-    sw $t0, -12($fp)
-    lw $t0, -12($fp)
+    move $t1, $t0
     addi $sp, $sp, -4
-    sw $t0, 0($sp)
+    sw $t1, 0($sp)
+    sw $t1, -12($fp)
     addi $sp, $sp, -4
     sw $ra, 0($sp)
     jal fact
     lw $ra, 0($sp)
     addi $sp, $sp, 4
-    move $t0, $v0
-    sw $t0, -16($fp)
+    move $t2, $v0
     addi $sp, $fp, -80
-    lw $t0, -16($fp)
-    sw $t0, -32($fp)
+    move $t3, $t2
+    sw $t2, -16($fp)
+    sw $t3, -32($fp)
     j __LABEL_5__
 __LABEL_4__:
-    li $t0, 1
-    sw $t0, -8($fp)
-    lw $t0, -8($fp)
-    sw $t0, -32($fp)
+    li $t4, 1
+    move $t5, $t4
+    move $t6, $t5
+    sw $t5, -8($fp)
+    sw $t6, -32($fp)
 __LABEL_5__:
-    lw $t0, -32($fp)
-    sw $t0, -4($fp)
-    lw $t0, -4($fp)
-    move $a0, $t0
+    lw $t7, -32($fp)
+    move $t8, $t7
+    move $a0, $t8
     addi $sp, $sp, -4
     sw $ra, 0($sp)
     jal write
     lw $ra, 0($sp)
     addi $sp, $sp, 4
-    li $t0, 0
-    sw $t0, -0($fp)
-    lw $t0, -0($fp)
+    li $t9, 0
+    move $t0, $t9
     move $v0, $t0
     move $sp, $fp
     lw $fp, 0($sp)

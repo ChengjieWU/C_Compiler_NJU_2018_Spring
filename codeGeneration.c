@@ -1,19 +1,31 @@
 #include "codeGeneration.h"
 
+static int GEN_REGS = 10;
+
 extern struct Symbol_t *sym_table;
 int params_count = 0;
 int params_iter = 0;
 int space_size = 0;
+int reg_scan = 0;
+
 
 void generate_text(CB ic, FILE *f)
 {
+    int count = 0;
     struct InterCode *code = ic.begin;
     for (; code != NULL; code = code->next) {
+        int r0, r1, r2, i;
         switch (code->kind) {
             case IR_LABEL:
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
                 fprintf(f, "%s:\n", code->op1.sym->name);
                 break;
             case IR_FUNCTION:
+                for (i = 0; i < MAX_REGS; i++) {
+                     regs[i].free = true;
+                }
                 fprintf(f, "%s:\n", code->op1.sym->name);
                 params_count = code->op1.sym->num_params;
                 params_iter = 0;
@@ -24,139 +36,149 @@ void generate_text(CB ic, FILE *f)
                 break;
             case IR_ASSIGN:
                 if (code->result.sym != NULL) {
-                    load_operand(code->op1, 0, f);
-                    store_register_symbol(code->result.sym, 0, f);
+                    r1 = reg_load_operand(code->op1, f);
+                    r0 = link_symbol_register(code->result.sym, f);
+                    fprintf(f, "    move $t%d, $t%d\n", r0, r1);
                 }
                 break;
             case IR_ADD:
                 if (code->result.sym != NULL) {
-                    load_operand(code->op1, 0, f);
-                    load_operand(code->op2, 1, f);
-                    fprintf(f, "    add $t2, $t0, $t1\n");
-                    store_register_symbol(code->result.sym, 2, f);
+                    r1 = reg_load_operand(code->op1, f);
+                    r2 = reg_load_operand(code->op2, f);
+                    r0 = link_symbol_register(code->result.sym, f);
+                    fprintf(f, "    add $t%d, $t%d, $t%d\n", r0, r1, r2);
                 }
                 break;
             case IR_MINUS:
                 if (code->result.sym != NULL) {
-                    load_operand(code->op1, 0, f);
-                    load_operand(code->op2, 1, f);
-                    fprintf(f, "    sub $t2, $t0, $t1\n");
-                    store_register_symbol(code->result.sym, 2, f);
+                    r1 = reg_load_operand(code->op1, f);
+                    r2 = reg_load_operand(code->op2, f);
+                    r0 = link_symbol_register(code->result.sym, f);
+                    fprintf(f, "    sub $t%d, $t%d, $t%d\n", r0, r1, r2);
                 }
                 break;
             case IR_MUL:
                 if (code->result.sym != NULL) {
-                    load_operand(code->op1, 0, f);
-                    load_operand(code->op2, 1, f);
-                    fprintf(f, "    mul $t2, $t0, $t1\n");
-                    store_register_symbol(code->result.sym, 2, f);
+                    r1 = reg_load_operand(code->op1, f);
+                    r2 = reg_load_operand(code->op2, f);
+                    r0 = link_symbol_register(code->result.sym, f);
+                    fprintf(f, "    mul $t%d, $t%d, $t%d\n", r0, r1, r2);
                 }
                 break;
             case IR_DIV:
                 if (code->result.sym != NULL) {
-                    load_operand(code->op1, 0, f);
-                    load_operand(code->op2, 1, f);
-                    fprintf(f, "    div $t0, $t1\n");
-                    fprintf(f, "    mflo $t2\n");
-                    store_register_symbol(code->result.sym, 2, f);
+                    r1 = reg_load_operand(code->op1, f);
+                    r2 = reg_load_operand(code->op2, f);
+                    r0 = link_symbol_register(code->result.sym, f);
+                    fprintf(f, "    div $t%d, $t%d\n", r1, r2);
+                    fprintf(f, "    mflo $t%d\n", r0);
                 }
                 break;
             case IR_ADDRESS:
                 if (code->result.sym != NULL) {
-                    fprintf(f, "    addi $t0, $fp, -%d\n", lookup_offset(code->op1.sym->name));
-                    store_register_symbol(code->result.sym, 0, f);
+                    r0 = link_symbol_register(code->result.sym, f);
+                    fprintf(f, "    addi $t%d, $fp, -%d\n", r0, lookup_offset(code->op1.sym->name));
                 }
                 break;
             case IR_POINTL:
                 if (code->result.sym != NULL) {
-                    load_operand(code->op1, 0, f);
-                    load_operand(code->result, 1, f);
-                    fprintf(f, "    sw $t0, 0($t1)\n");
+                    r1 = reg_load_operand(code->op1, f);
+                    r0 = reg_load_operand(code->result, f);
+                    fprintf(f, "    sw $t%d, 0($t%d)\n", r1, r0);
                 }
                 break;
             case IR_POINTR:
                 if (code->result.sym != NULL) {
-                    load_operand(code->op1, 0, f);
-                    fprintf(f, "    lw $t1, 0($t0)\n");
-                    store_register_symbol(code->result.sym, 1, f);
+                    r1 = reg_load_operand(code->op1, f);
+                    r0 = link_symbol_register(code->result.sym, f);
+                    fprintf(f, "    lw $t%d, 0($t%d)\n", r0, r1);
                 }
                 break;
             case IR_GOTO:
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
                 fprintf(f, "    j %s\n", code->op1.sym->name);
                 break;
             case IR_GOL:
-                load_operand(code->op1, 0, f);
-                load_operand(code->op2, 1, f);
-                fprintf(f, "    blt $t0, $t1, %s\n", code->result.sym->name);
+                r1 = reg_load_operand(code->op1, f);
+                r2 = reg_load_operand(code->op2, f);
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
+                fprintf(f, "    blt $t%d, $t%d, %s\n", r1, r2, code->result.sym->name);
                 break;
             case IR_GOG:
-                load_operand(code->op1, 0, f);
-                load_operand(code->op2, 1, f);
-                fprintf(f, "    bgt $t0, $t1, %s\n", code->result.sym->name);
+                r1 = reg_load_operand(code->op1, f);
+                r2 = reg_load_operand(code->op2, f);
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
+                fprintf(f, "    bgt $t%d, $t%d, %s\n", r1, r2, code->result.sym->name);
                 break;
             case IR_GOLE:
-                load_operand(code->op1, 0, f);
-                load_operand(code->op2, 1, f);
-                fprintf(f, "    ble $t0, $t1, %s\n", code->result.sym->name);
+                r1 = reg_load_operand(code->op1, f);
+                r2 = reg_load_operand(code->op2, f);
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
+                fprintf(f, "    ble $t%d, $t%d, %s\n", r1, r2, code->result.sym->name);
                 break;
             case IR_GOGE:
-                load_operand(code->op1, 0, f);
-                load_operand(code->op2, 1, f);
-                fprintf(f, "    bge $t0, $t1, %s\n", code->result.sym->name);
+                r1 = reg_load_operand(code->op1, f);
+                r2 = reg_load_operand(code->op2, f);
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
+                fprintf(f, "    bge $t%d, $t%d, %s\n", r1, r2, code->result.sym->name);
                 break;
             case IR_GOE:
-                load_operand(code->op1, 0, f);
-                load_operand(code->op2, 1, f);
-                fprintf(f, "    beq $t0, $t1, %s\n", code->result.sym->name);
+                r1 = reg_load_operand(code->op1, f);
+                r2 = reg_load_operand(code->op2, f);
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
+                fprintf(f, "    beq $t%d, $t%d, %s\n", r1, r2, code->result.sym->name);
                 break;
             case IR_GONE:
-                load_operand(code->op1, 0, f);
-                load_operand(code->op2, 1, f);
-                fprintf(f, "    bne $t0, $t1, %s\n", code->result.sym->name);
+                r1 = reg_load_operand(code->op1, f);
+                r2 = reg_load_operand(code->op2, f);
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
+                fprintf(f, "    bne $t%d, $t%d, %s\n", r1, r2, code->result.sym->name);
                 break;
             case IR_RETURN:
-                load_operand(code->op1, 0, f);
-                fprintf(f, "    move $v0, $t0\n");
+                r1 = reg_load_operand(code->op1, f);
+                fprintf(f, "    move $v0, $t%d\n", r1);
                 fprintf(f, "    move $sp, $fp\n");
                 fprintf(f, "    lw $fp, 0($sp)\n");
                 fprintf(f, "    addi $sp, $sp, 4\n");
                 fprintf(f, "    jr $ra\n");
                 break;
             case IR_ARG:
-                load_operand(code->op1, 0, f);
-                // if (params_count < 4) {
-                //     fprintf(f, "    move $a%d, $t0\n", params_count++);
-                // }
-                // else {
-                //     fprintf(f, "    addi $sp, $sp, -4\n");
-                //     fprintf(f, "sw $t0, 0($sp)\n");
-                //     params_count++;
-                // }
+                r1 = reg_load_operand(code->op1, f);
                 fprintf(f, "    addi $sp, $sp, -4\n");
-                fprintf(f, "    sw $t0, 0($sp)\n");
+                fprintf(f, "    sw $t%d, 0($sp)\n", r1);
                 break;
             case IR_CALL:
+                for (i = 0; i < MAX_REGS; i++) {
+                    dump_register(i, f);
+                }
                 fprintf(f, "    addi $sp, $sp, -4\n");
                 fprintf(f, "    sw $ra, 0($sp)\n");
                 fprintf(f, "    jal %s\n", code->op1.sym->name);
                 fprintf(f, "    lw $ra, 0($sp)\n");
                 fprintf(f, "    addi $sp, $sp, 4\n");
-                fprintf(f, "    move $t0, $v0\n");
-                store_register_symbol(code->result.sym, 0, f);
+                r0 = link_symbol_register(code->result.sym, f);
+                fprintf(f, "    move $t%d, $v0\n", r0);
                 /* 这边没有跟踪参数空间，因此难以恢复。由于临时变量空间固定，因此从 fp 重新算！！！ */
                 fprintf(f, "    addi $sp, $fp, -%d\n", space_size);
                 break;
             case IR_PARAM:
-                // if (params_count <= 4) {
-                //     fprintf(f, "    move $t0, $a%d\n", --params_count);
-                // }
-                // else {
-                //     fprintf(f, "    lw $t0, %d($sp)\n", (params_count-4)*4);
-                //     params_count--;
-                // }
-                fprintf(f, "    lw $t0, %d($fp)\n", params_iter*4+8);
+                r1 = link_symbol_register(code->op1.sym, f);
+                fprintf(f, "    lw $t%d, %d($fp)\n", r1, params_iter*4+8);
                 params_iter++;
-                store_register_symbol(code->op1.sym, 0, f);
                 break;
             case IR_READ:
                 fprintf(f, "    addi $sp, $sp, -4\n");
@@ -164,12 +186,12 @@ void generate_text(CB ic, FILE *f)
                 fprintf(f, "    jal read\n");
                 fprintf(f, "    lw $ra, 0($sp)\n");
                 fprintf(f, "    addi $sp, $sp, 4\n");
-                fprintf(f, "    move $t0, $v0\n");
-                store_register_symbol(code->op1.sym, 0, f);
+                r1 = link_symbol_register(code->op1.sym, f);
+                fprintf(f, "    move $t%d, $v0\n", r1);
                 break;
             case IR_WRITE:
-                load_operand(code->op1, 0, f);
-                fprintf(f, "    move $a0, $t0\n");
+                r1 = reg_load_operand(code->op1, f);
+                fprintf(f, "    move $a0, $t%d\n", r1);
                 fprintf(f, "    addi $sp, $sp, -4\n");
                 fprintf(f, "    sw $ra, 0($sp)\n");
                 fprintf(f, "    jal write\n");
@@ -179,6 +201,8 @@ void generate_text(CB ic, FILE *f)
             default:
                 break;
         }
+        // printf("Code %d: %d\n", ++count, code->kind);
+        // print_regs();
     }
 }
 
@@ -187,15 +211,6 @@ bool generate_components(FILE *f)
     fprintf(f, ".data\n");
     fprintf(f, "_prompt: .asciiz \"Enter an integer:\"\n");
     fprintf(f, "_ret: .asciiz \"\\n\"\n");
-    // struct Symbol_t *sym = sym_table;
-    // for (; sym != NULL; sym = sym->next) {
-    //     if (sym->kind == SYM_VAR) {
-    //         fprintf(f, "ASSPRE_%s: .word 0\n", sym->name);
-    //     }
-    //     else if (sym->kind == SYM_ARRAY) {
-    //         fprintf(f, "ASSPRE_%s: .space %d\n", sym->name, sym->array_width);
-    //     }
-    // }
     fprintf(f, ".globl main\n");
     fprintf(f, ".text\n");
     if (copy_from_file("read.s", f) == false) return false;
@@ -253,35 +268,94 @@ void initialize_code_generation()
     for (i = 0; i < MAX_REGS; i++) {
         regs[i].free = true;
     }
-    params_count = 0;
     space_size = calculate_offset();
+    reg_scan = 0;
 }
 
-void load_operand(struct Operand op, int reg, FILE *f) {
+int reg_load_operand(struct Operand op, FILE *f)
+{
     if (op.kind == OP_CONSTANT) {
+        int reg = reg_scan++;
+        if (reg_scan >= GEN_REGS) reg_scan = 0;
+        dump_register(reg, f);
         fprintf(f, "    li $t%d, %d\n", reg, op.value);
+        regs[reg].free = false;
+        regs[reg].value = true;
+        return reg;
     }
     else {
-        load_register_symbol(op.sym, reg, f);
+        struct Symbol_t *sym = op.sym;
+        int i = 0;
+        for (; i < GEN_REGS; i++) {
+            if (regs[i].free == false && regs[i].sym == sym) break;
+        }
+        if (i == GEN_REGS) {
+            // 不在寄存器中，要把它加入寄存器
+            int reg = reg_scan++;
+            if (reg_scan >= GEN_REGS) reg_scan = 0;
+            dump_register(reg, f);
+            load_register_symbol(sym, reg, f);
+            return reg;
+        }
+        else {
+            // 该符号已经在寄存器中，直接返回相应寄存器
+            return i;
+        }
     }
+}
+
+int link_symbol_register(struct Symbol_t *sym, FILE *f)
+{
+    int i = 0;
+    for (; i < GEN_REGS; i++) {
+        if (regs[i].free == false && regs[i].sym == sym) break;
+    }
+    if (i == GEN_REGS) {
+        int reg = reg_scan++;
+        if (reg_scan >= GEN_REGS) reg_scan = 0;
+        dump_register(reg, f);
+        regs[reg].free = false;
+        regs[reg].value = false;
+        regs[reg].sym = sym;
+        sym->dirty = true;
+        return reg;
+    }
+    else {
+        sym->dirty = true;
+        return i;
+    }
+}
+
+void dump_register(int reg, FILE* f)
+{
+    if (regs[reg].free == true) return;
+    if (regs[reg].value == true) {
+        regs[reg].free = true;
+        return;
+    }
+    struct Symbol_t *sym = regs[reg].sym;
+    if (sym->dirty == true) {
+        store_register_symbol(sym, reg, f);
+    }
+    regs[reg].free = true;
+    return;
 }
 
 void load_register_symbol(struct Symbol_t *sym, int reg, FILE *f)
 {
-    // regs[reg].free = false;
-    // regs[reg].sym = sym;
-    // fprintf(f, "    la $s0, ASSPRE_%s\n", sym->name);
-    // fprintf(f, "    lw $t%d, 0($s0)\n", reg);
     int offset = lookup_offset(sym->name);
     fprintf(f, "    lw $t%d, -%d($fp)\n", reg, offset);
+    sym->dirty = false;
+    regs[reg].free = false;
+    regs[reg].value = false;
+    regs[reg].sym = sym;
 }
 
 void store_register_symbol(struct Symbol_t *sym, int reg, FILE *f)
 {
-    // fprintf(f, "    la $s0, ASSPRE_%s\n", sym->name);
-    // fprintf(f, "    sw $t%d, 0($s0)\n", reg);
     int offset = lookup_offset(sym->name);
     fprintf(f, "    sw $t%d, -%d($fp)\n", reg, offset);
+    sym->dirty = false;
 }
 
 void generate_code(CB ic, FILE *f)
@@ -289,4 +363,15 @@ void generate_code(CB ic, FILE *f)
     initialize_code_generation();
     generate_components(f);
     generate_text(ic, f);
+}
+
+void print_regs()
+{
+    int i;
+    for (i = 0; i < GEN_REGS; i++) {
+        if (regs[i].free == false && regs[i].value == false) {
+            printf("%d: %s\n", i, regs[i].sym->name);
+        }
+    }
+    printf("\n");
 }

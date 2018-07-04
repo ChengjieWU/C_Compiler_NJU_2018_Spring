@@ -11,8 +11,5 @@ PARSER: lexical.l syntax.y main.c grammarTree.c type.c symbol.c semantic.c trans
 	@flex lexical.l
 	@$(CC) main.c syntax.tab.c grammarTree.c type.c symbol.c semantic.c translate.c codeGeneration.c $(LINK_FLAG) -ly -o parser -w
 
-run: PARSER
-	@./parser example3/example2 example3/example2_sol
-
 clean:
 	@rm -rf parser syntax.tab.c syntax.tab.h lex.yy.c

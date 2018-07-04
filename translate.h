@@ -24,6 +24,7 @@ struct Symbol_t {
     int ele_width;              // 当 kind 为 SYM_ARRAY 时有效，表示每个数组元素的空间大小
     int num_params;             // 当 kind 为 SYM_FUNC 时有效，表示该函数的参数个数
     int offset;                 // 当 kind 为 SYM_VAR 或 SYM_ARRAY 时有效，记录每一个符号在栈中存储位置的偏移
+    bool dirty;                 // 当 kind 为 SYM_VAR 或 SYM_ARRAY 时有效，记录值是否需要被写会内存位置中
 };
 
 struct Operand {

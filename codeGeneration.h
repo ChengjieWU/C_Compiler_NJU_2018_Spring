@@ -13,15 +13,21 @@ bool generate_components(FILE *f);
 bool copy_from_file(char source_file[], FILE *f);
 void generate_code(CB ic, FILE *f);
 void initialize_code_generation();
-void load_operand(struct Operand op, int reg, FILE *f);
 void load_register_symbol(struct Symbol_t *sym, int reg, FILE *f);
 void store_register_symbol(struct Symbol_t *sym, int reg, FILE *f);
 int calculate_offset();
 int lookup_offset(char *name);
+int reg_load_operand(struct Operand op, FILE *f);
+void dump_register(int reg, FILE* f);
+int link_symbol_register(struct Symbol_t *sym, FILE *f);
+
+void print_regs();
+
 
 struct Register
 {
     bool free;
+    bool value;
     struct Symbol_t *sym;
 };
 
